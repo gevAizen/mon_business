@@ -10,9 +10,14 @@ import { EXPENSE_CATEGORIES } from "@/types";
  * Sum expenses by category across all entries
  * Returns object with category as key and total amount as value
  */
-export function getExpensesByCategory(entries: DailyEntry[]): Record<ExpenseCategory, number> {
-  const breakdown: Record<ExpenseCategory, number> = {} as Record<ExpenseCategory, number>;
-  
+export function getExpensesByCategory(
+  entries: DailyEntry[],
+): Record<ExpenseCategory, number> {
+  const breakdown: Record<ExpenseCategory, number> = {} as Record<
+    ExpenseCategory,
+    number
+  >;
+
   // Initialize all categories to 0
   EXPENSE_CATEGORIES.forEach((category) => {
     breakdown[category] = 0;
@@ -20,9 +25,10 @@ export function getExpensesByCategory(entries: DailyEntry[]): Record<ExpenseCate
 
   // Sum expenses for each category
   entries.forEach((entry) => {
-    entry.expenseItems.forEach((item: ExpenseLineItem) => {
-      breakdown[item.category] = (breakdown[item.category] || 0) + item.amount;
-    });
+    if (entry.type === "EXPENSE" && entry.category) {
+      breakdown[entry.category] =
+        (breakdown[entry.category] || 0) + entry.amount;
+    }
   });
 
   return breakdown;
@@ -41,11 +47,15 @@ export function getTotalExpenses(entries: DailyEntry[]): number {
 /**
  * Get expenses for a specific category
  */
-export function getExpensesForCategory(entries: DailyEntry[], category: ExpenseCategory): number {
+export function getExpensesForCategory(
+  entries: DailyEntry[],
+  category: ExpenseCategory,
+): number {
   return entries.reduce((sum, entry) => {
-    const categoryExpenses = entry.expenseItems
-      .filter((item) => item.category === category)
-      .reduce((catSum, item) => catSum + item.amount, 0);
+    const categoryExpenses =
+      entry.type === "EXPENSE" && entry.category === category
+        ? entry.amount
+        : 0;
     return sum + categoryExpenses;
   }, 0);
 }
@@ -60,7 +70,9 @@ export interface ExpenseBreakdownItem {
   percentage: number;
 }
 
-export function formatExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdownItem[] {
+export function formatExpenseBreakdown(
+  entries: DailyEntry[],
+): ExpenseBreakdownItem[] {
   const breakdown = getExpensesByCategory(entries);
   const total = Object.values(breakdown).reduce((a, b) => a + b, 0);
 
@@ -68,12 +80,11 @@ export function formatExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdownI
     return [];
   }
 
-  return EXPENSE_CATEGORIES
-    .map((category) => ({
-      category,
-      amount: breakdown[category],
-      percentage: total > 0 ? Math.round((breakdown[category] / total) * 100) : 0,
-    }))
+  return EXPENSE_CATEGORIES.map((category) => ({
+    category,
+    amount: breakdown[category],
+    percentage: total > 0 ? Math.round((breakdown[category] / total) * 100) : 0,
+  }))
     .filter((item) => item.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 }
@@ -84,7 +95,7 @@ export function formatExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdownI
  */
 export function getExpenseRatio(entries: DailyEntry[]): number {
   const totalSales = entries.reduce((sum, entry) => {
-    return sum + entry.saleItems.reduce((itemSum, item) => itemSum + item.total, 0);
+    return sum + (entry.type === "SALE" ? entry.amount : 0);
   }, 0);
 
   const totalExpenses = getTotalExpenses(entries);
@@ -99,7 +110,7 @@ export function getExpenseRatio(entries: DailyEntry[]): number {
 export function getEntriesInDateRange(
   entries: DailyEntry[],
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): DailyEntry[] {
   return entries.filter((entry) => {
     const entryDate = new Date(entry.date);
@@ -119,7 +130,9 @@ export function getMonthlyExpenseBreakdown(): ExpenseBreakdownItem[] {
 /**
  * Get expense breakdown for today
  */
-export function getTodayExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdownItem[] {
+export function getTodayExpenseBreakdown(
+  entries: DailyEntry[],
+): ExpenseBreakdownItem[] {
   const today = new Date().toISOString().split("T")[0];
   const todayEntries = entries.filter((e) => e.date === today);
   return formatExpenseBreakdown(todayEntries);
@@ -128,7 +141,9 @@ export function getTodayExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdow
 /**
  * Get expense breakdown for last 7 days
  */
-export function getWeeklyExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdownItem[] {
+export function getWeeklyExpenseBreakdown(
+  entries: DailyEntry[],
+): ExpenseBreakdownItem[] {
   const today = new Date();
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 6);
@@ -140,7 +155,9 @@ export function getWeeklyExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdo
 /**
  * Get expense breakdown for current month
  */
-export function getCurrentMonthExpenseBreakdown(entries: DailyEntry[]): ExpenseBreakdownItem[] {
+export function getCurrentMonthExpenseBreakdown(
+  entries: DailyEntry[],
+): ExpenseBreakdownItem[] {
   const now = new Date();
   const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
