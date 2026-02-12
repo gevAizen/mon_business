@@ -1,237 +1,250 @@
-# "MonBusiness" web app (PWA)
+# Stock & Expense Categorization Feature Plan
 
-_"Tu travailles dur chaque jour, mais tu sais vraiment si ton business gagne de l’argent ? MonBusiness t’aide à voir clairement ce qui se passe dans ton commerce, sans paperasse compliquée ni calculs fastidieux. Entre tes ventes et tes dépenses, suis tes profits, surveille tes stocks et découvre l’état de ton business en un coup d’œil. Simple, rapide, et toujours à portée de main sur ton téléphone, même hors ligne."_
+## Problem Statement
 
-## 🎯 MVP Definition (Locked Scope)
+Current system lacks inventory tracking depth and expense insights:
 
-Must have:
+- Sales are arbitrary amounts (no product tracking)
+- Expenses are lump sums with no categorization
+- No visibility into what products sell best
+- Stock updates are manual (error-prone)
 
-- Add daily sales & expenses
-- Automatic profit calculation
-- Monthly summary
-- Business health score (deterministic)
-- Stock tracking + threshold alert (in-app only)
-- JSON export / import
-- Works offline (PWA)
-- No backend
-- No auth
-- LocalStorage only
+## Solution Overview
 
-Nothing else.
-
----
-
-## 0️⃣ Project Setup (30–45 min)
-
-- [x] Create Next.js app (app router)
-- [x] Install Tailwind
-- [x] Install `@serwist/next`
-- [ ] Configure static export (if desired)
-- [ ] Clean default template
+1. **Stock Tracking**: Add `totalSold` field to StockItem; auto-decrement stock when selling
+2. **Expense Categories**: 6 predefined categories (Stock, Transport, Loyer, Salaire, Internet, Autre)
+3. **Smart Data Model**: DailyEntry redesigned to track product sales & categorized expenses separately
+4. **UI/UX**:
+   - Tab/Accordion system in AddEntry to switch between sales & expenses
+   - Dashboard shows low-stock alerts + top performers snippet
+   - New Analytics page: pie chart for expenses + top-performing products
 
 ---
 
-## 1️⃣ Define Data Models (Core)
+## Workplan
 
-Create shared types:
+### Phase 1: Data Model & Types
 
-- [ ] DailyEntry
+- [ ] Update `StockItem` type: add `totalSold: number` field (tracks cumulative units sold)
+- [ ] Create new types:
+  - [ ] `ExpenseCategory` enum: 'Stock' | 'Transport' | 'Loyer' | 'Salaire' | 'Internet' | 'Autre'
+  - [ ] `SaleLineItem`: { productId, quantity, unitPrice?, total }
+  - [ ] `ExpenseLineItem`: { category, amount }
+  - [ ] Update `DailyEntry`: remove generic `sales`/`expenses`, add `saleItems[]` & `expenseItems[]`
+- [ ] Add validation utilities for new types
 
-```TS
- {
-   date: string
-   sales: number
-   expenses: number
- }
+### Phase 2: Localization (i18n)
+
+- [ ] Add French translations for:
+  - [ ] Expense category names (Stock, Transport, Loyer, Salaire, Internet, Autre)
+  - [ ] UI labels: "Ajouter une vente", "Ajouter une dépense", "Catégorie de dépense"
+  - [ ] Analytics page: "Analyse des dépenses", "Produits les plus vendus"
+
+### Phase 3: Core Logic Updates
+
+- [ ] Create `lib/expenses.ts`:
+  - [ ] Function to sum expenses by category (for pie chart)
+  - [ ] Function to format category breakdown (list of categories + totals)
+- [ ] Create `lib/stock.ts`:
+  - [ ] Function to update stock when entry is saved (decrement by quantity sold)
+  - [ ] Function to get top-selling products (sort by totalSold desc)
+  - [ ] Function to detect low-stock items for alerts
+- [ ] Update `lib/profit.ts`:
+  - [ ] Modify getTodayProfit/getMonthlyProfit to work with new `saleItems[]` structure
+  - [ ] Ensure profit calculation still works: sum all sales - sum all expenses by category
+
+### Phase 4: Storage & Migration
+
+- [ ] Update `lib/storage.ts`:
+  - [ ] Add validation for new DailyEntry structure
+  - [ ] Add data migration logic (convert old simple sales/expenses to new structure)
+  - [ ] Backward compatibility: handle both old & new formats on load
+- [ ] Test migration with sample data
+
+### Phase 5: AddEntry Component Redesign
+
+- [ ] Refactor AddEntry.tsx:
+  - [ ] Add tab/accordion system: "Vente" | "Dépense"
+  - [ ] **Sales Tab**:
+    - [ ] Dropdown to select product from stock
+    - [ ] Input field for quantity
+    - [ ] Display unit price (if available) & calculated total
+    - [ ] "Add Line Item" button to stack multiple products
+    - [ ] Show list of selected products with ability to remove
+  - [ ] **Expense Tab**:
+    - [ ] Dropdown/buttons for expense category (6 predefined)
+    - [ ] Input field for amount
+    - [ ] "Add Line Item" button to stack multiple expenses
+    - [ ] Show list of added expenses with ability to remove
+  - [ ] Total profit calculation: sum(sales) - sum(expenses)
+  - [ ] On save: auto-decrement stock for each product sold
+
+### Phase 6: StockManagement Updates
+
+- [ ] Update `StockManagement.tsx`:
+  - [ ] Display `totalSold` field (read-only, for reference)
+  - [ ] Show low-stock alert on each item (if quantity ≤ threshold)
+  - [ ] Optional: add unit price field (for future cost tracking)
+
+### Phase 7: Dashboard Enhancements
+
+- [ ] Update `Dashboard.tsx`:
+  - [ ] **Low-Stock Alert Section**: Show 2-3 top low-stock items
+  - [ ] **Top Performers Snippet**: Show 2-3 best-selling products by totalSold
+  - [ ] Link to Analytics page for detailed view
+
+### Phase 8: New Analytics Page
+
+- [ ] Create `app/components/Analytics.tsx`:
+  - [ ] **Expense Breakdown**:
+    - [ ] Pie chart: 6 expense categories with percentages
+    - [ ] List view: category names + amounts + % of total
+    - [ ] Filter by date range (optional: today, this month, all time)
+  - [ ] **Top Performing Products**:
+    - [ ] Table/List: product name, totalSold, total revenue from that product
+    - [ ] Sort by totalSold desc or by revenue
+  - [ ] "Back" button to return to Dashboard
+
+### Phase 9: Navigation & Routing
+
+- [ ] Update `app/page.tsx`:
+  - [ ] Add Analytics tab to bottom navigation (4 tabs → 5 tabs or rearrange)
+  - [ ] Ensure active state styling works for Analytics
+
+### Phase 10: Testing & Validation
+
+- [ ] Build & verify no TypeScript errors
+- [ ] Manual test:
+  - [ ] Add entry with multiple products → verify stock decrements
+  - [ ] Add entry with categorized expenses → verify pie chart shows breakdown
+  - [ ] Test migration: old data loads correctly
+  - [ ] Low-stock alerts show correctly
+  - [ ] Top performers update as sales accumulate
+- [ ] Test edge cases:
+  - [ ] Selling product that doesn't exist (error handling)
+  - [ ] Deleting an entry → should stock be restored? (decide & implement)
+  - [ ] Zero-quantity products in sales
+
+---
+
+## UI/UX Flow
+
+### AddEntry Modal (Redesigned)
+
+```
+┌─────────────────────────────────┐
+│  Ajouter une entrée             │ [X]
+├─────────────────────────────────┤
+│ [Vente] [Dépense]               │  <- Tab/Accordion
+├─────────────────────────────────┤
+│ Produit: [Dropdown: "Chaussures"]│  <- Sales tab
+│ Quantité: [2]                   │
+│ Prix unitaire: 25,000 CFA       │
+│ Total: 50,000 CFA               │
+│ [+ Ajouter autre produit]       │
+│ ┌─────────────────────────────┐ │
+│ │ Chaussures × 2              │ │
+│ │ 50,000 CFA              [✕] │ │
+│ └─────────────────────────────┘ │
+│                                 │
+│ Profit: 50,000 CFA              │
+├─────────────────────────────────┤
+│ [Annuler] [Enregistrer]         │
+└─────────────────────────────────┘
+
+When "Dépense" tab clicked:
+┌─────────────────────────────────┐
+│ Catégorie: [Dropdown: "Stock"]   │  <- Expense tab
+│ Montant: 15,000 CFA             │
+│ [+ Ajouter autre dépense]       │
+│ ┌─────────────────────────────┐ │
+│ │ Stock: 15,000 CFA       [✕] │ │
+│ │ Transport: 5,000 CFA    [✕] │ │
+│ └─────────────────────────────┘ │
+└─────────────────────────────────┘
 ```
 
-- [ ] StockItem
+### Dashboard (Enhanced)
 
-```TS
- {
-   id: string
-   name: string
-   quantity: number
-   threshold: number
- }
+```
+┌─────────────────────────────────┐
+│ Bonjour, [Business Name]        │
+├─────────────────────────────────┤
+│ 📊 Profit: 50,000 CFA (green)   │
+│ 📈 Tendance: En croissance      │
+│ 💪 Santé: 7/10 - Bon            │
+├─────────────────────────────────┤
+│ ⚠️  Stock faible:                │
+│ • Chaussures (2/10 seuil)   [→] │
+│ • Shirts (3/15 seuil)       [→] │
+├─────────────────────────────────┤
+│ ⭐ Produits les plus vendus:     │
+│ • Chaussures (50 vendues)   [→] │
+│ • Shirts (20 vendues)       [→] │
+│ [Voir l'analyse complète]   [→] │
+├─────────────────────────────────┤
+│ [+ Ajouter] [📋] [📦] [📊] [⚙️] │
+└─────────────────────────────────┘
 ```
 
-- [ ] BusinessSettings
+### Analytics Page
 
-```TS
- {
-   name: string
-   dailyTarget?: number
- }
+```
+┌─────────────────────────────────┐
+│ ← Analyse des dépenses          │
+├─────────────────────────────────┤
+│        PIE CHART                │
+│    (6 expense categories)       │
+│                                 │
+│ Répartition:                    │
+│ • Stock: 45,000 CFA (45%)  ■    │
+│ • Transport: 20,000 CFA (20%) ■ │
+│ • Salaire: 30,000 CFA (30%) ■   │
+│ • Internet: 5,000 CFA (5%) ■    │
+├─────────────────────────────────┤
+│ Produits les plus vendus:       │
+│ # | Produit    | Vendus | Total │
+│ 1 | Chaussures | 50     | 1.25M │
+│ 2 | Shirts     | 20     | 500K  │
+│ 3 | Pantalons  | 15     | 750K  │
+├─────────────────────────────────┤
+│ Filtrer: [Aujourd'hui] [Mois]   │
+│          [Tout]                 │
+└─────────────────────────────────┘
 ```
 
-- [ ] Root storage object
+---
 
-```TS
- {
-   settings,
-   entries[],
-   stock[]
- }
-```
+## Technical Decisions
+
+### Stock Decrement Strategy
+
+- **When**: On entry save (after validation)
+- **Rollback**: If entry is deleted, stock is NOT automatically restored (user manually adjusts)
+- **Reason**: Simplicity + force user awareness of deletions
+
+### Expense Categories (Hardcoded)
+
+- 6 fixed categories as predefined dropdowns
+- No user custom categories (to keep analytics clean)
+
+### Migration Strategy
+
+- Old entries (with generic `sales`/`expenses`) converted on load
+- `sales` → single `saleItem` with generic product ID
+- `expenses` → single `expenseItem` with category "Autre"
+- No data loss, gradual transition as user adds new entries
+
+### Analytics Date Filter
+
+- Start simple: default to "current month"
+- Optional enhancement: add date range picker later
 
 ---
 
-## 2️⃣ Local Storage Layer (Important)
+## Considerations & Notes
 
-Create simple utility:
-
-- [ ] loadData()
-- [ ] saveData()
-- [ ] Safe JSON parsing
-- [ ] Default fallback structure
-
-No external state library needed.
-
-Use useState + useEffect.
-
----
-
-## 3️⃣ First-Time Setup Screen
-
-If no data exists:
-
-- [ ] Ask business name
-- [ ] Optional daily target
-- [ ] Save locally
-- [ ] Redirect to dashboard
-
----
-
-## 4️⃣ Add Daily Entry Page
-
-Form:
-
-- [ ] Sales input (number)
-- [ ] Expenses input (number)
-- [ ] Auto-set today’s date
-- [ ] Save entry
-- [ ] Prevent duplicate date entry (update instead)
-
----
-
-## 5️⃣ Profit Calculation Engine
-
-Create pure functions:
-
-- [ ] getTodayProfit()
-- [ ] getMonthlyProfit()
-- [ ] getAverageDailyProfit()
-- [ ] getLast7DaysTrend()
-
-Keep logic separate from UI.
-
----
-
-## 6️⃣ Business Health Score Logic
-
-Create deterministic scoring function:
-
-Example logic:
-
-Start: 10
-
-- [ ] Profit today < 0 → -3
-- [ ] 3-day average decreasing → -2
-- [ ] Expenses > 70% of sales → -2
-- [ ] 2+ days missing entries → -1
-- [ ] Week growth positive → +1
-
-Clamp 0–10.
-
-Return:
-
-{
-score: number,
-message: string
-}
-
----
-
-## 7️⃣ Dashboard Page
-
-Display:
-
-- [ ] Greeting (Business Name)
-- [ ] Today profit
-- [ ] Monthly profit
-- [ ] Health score (big visual)
-- [ ] Trend indicator
-- [ ] Low stock warning badge (if any)
-
-Mobile-first design.
-
----
-
-## 8️⃣ Stock Management Page
-
-- [ ] Add product
-- [ ] Edit quantity
-- [ ] Set threshold
-- [ ] Highlight items where quantity ≤ threshold
-- [ ] Delete item
-
-No alerts.
-Just visual warning.
-
----
-
-## 9️⃣ JSON Export / Import
-
-Export:
-
-- [ ] Button “Download My Data”
-- [ ] Generate JSON file
-- [ ] Trigger download
-
-Import:
-
-- [ ] Upload JSON file
-- [ ] Validate structure
-- [ ] Replace local data
-- [ ] Confirmation modal
-
----
-
-## 🔟 Offline / PWA Setup
-
-- [ ] Configure next-pwa
-- [ ] Add manifest.json
-- [ ] Add app icons
-- [ ] Test offline mode
-- [ ] Test install on mobile
-- [ ] Add small banner: “Install App”
-
----
-
-## 1️⃣1️⃣ UI Polish (Last 1–2 Hours)
-
-- [ ] Clean typography
-- [ ] Large buttons (mobile friendly)
-- [ ] Currency format (CFA)
-- [ ] Color-coded profit (green/red)
-- [ ] Health score color scale:
-  - 8–10: Green
-  - 5–7: Orange
-  - 0–4: Red
-
-Keep it minimal.
-
----
-
-# 🧠 Architecture Principles
-
-- No Redux
-- No Context API unless needed
-- No API routes
-- No server actions
-- No database
-- Pure client app
-
-Keep logic in /lib/
-Keep types in /types/
+- **Performance**: With many products/expenses, pie chart may get large. Consider limiting to top categories + "Other"
+- **Stock Deletion**: Should deleting a stock item zero out totalSold? Decide: Keep history (safer) or reset
+- **Expense without Product**: Current design requires product for sales. Expense-only entries are common (rent, utilities) → works as standalone expense
+- **Mobile**: AddEntry tab switching needs clear visual feedback on small screens

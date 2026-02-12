@@ -2,9 +2,11 @@
  * Profit calculation utilities
  * Pure functions for calculating business metrics
  * All calculations are deterministic and testable
+ * Supports both new (saleItems/expenseItems) and old (sales/expenses) data formats
  */
 
 import type { DailyEntry } from "@/types";
+import { getSalesCompat, getExpensesCompat } from "@/lib/entryHelpers";
 
 /**
  * Calculate profit for a single entry
@@ -17,19 +19,21 @@ export function calculateProfit(sales: number, expenses: number): number {
 /**
  * Get today's profit
  * Sums ALL entries from today (supports multiple transactions per day)
+ * Works with both new and old data formats
  */
 export function getTodayProfit(entries: DailyEntry[]): number {
   const today = new Date().toISOString().split("T")[0];
   const todayEntries = entries.filter((e) => e.date === today);
   
-  const totalSales = todayEntries.reduce((sum, e) => sum + e.sales, 0);
-  const totalExpenses = todayEntries.reduce((sum, e) => sum + e.expenses, 0);
+  const totalSales = todayEntries.reduce((sum, e) => sum + getSalesCompat(e), 0);
+  const totalExpenses = todayEntries.reduce((sum, e) => sum + getExpensesCompat(e), 0);
   
   return calculateProfit(totalSales, totalExpenses);
 }
 
 /**
  * Get month profit (current month)
+ * Works with both new and old data formats
  */
 export function getMonthlyProfit(entries: DailyEntry[]): number {
   const now = new Date();
@@ -37,7 +41,7 @@ export function getMonthlyProfit(entries: DailyEntry[]): number {
 
   return entries
     .filter((e) => e.date.startsWith(currentMonth))
-    .reduce((sum, e) => sum + calculateProfit(e.sales, e.expenses), 0);
+    .reduce((sum, e) => sum + calculateProfit(getSalesCompat(e), getExpensesCompat(e)), 0);
 }
 
 /**
@@ -55,7 +59,7 @@ export function getAverageDailyProfit(entries: DailyEntry[], days: number = 7): 
 
   if (filteredEntries.length === 0) return 0;
 
-  const totalProfit = filteredEntries.reduce((sum, e) => sum + calculateProfit(e.sales, e.expenses), 0);
+  const totalProfit = filteredEntries.reduce((sum, e) => sum + calculateProfit(getSalesCompat(e), getExpensesCompat(e)), 0);
   return Math.round((totalProfit / filteredEntries.length) * 100) / 100;
 }
 
@@ -81,9 +85,9 @@ export function getLast7DaysTrend(entries: DailyEntry[]): number {
   const secondHalf = last7Days.slice(midpoint);
 
   const firstHalfAvg =
-    firstHalf.reduce((sum, e) => sum + calculateProfit(e.sales, e.expenses), 0) / firstHalf.length;
+    firstHalf.reduce((sum, e) => sum + calculateProfit(getSalesCompat(e), getExpensesCompat(e)), 0) / firstHalf.length;
   const secondHalfAvg =
-    secondHalf.reduce((sum, e) => sum + calculateProfit(e.sales, e.expenses), 0) / secondHalf.length;
+    secondHalf.reduce((sum, e) => sum + calculateProfit(getSalesCompat(e), getExpensesCompat(e)), 0) / secondHalf.length;
 
   if (secondHalfAvg > firstHalfAvg * 1.05) return 1; // 5% increase threshold
   if (secondHalfAvg < firstHalfAvg * 0.95) return -1; // 5% decrease threshold
@@ -106,8 +110,8 @@ export function getExpenseRatio(entries: DailyEntry[], days: number = 7): number
 
   if (filteredEntries.length === 0) return 0;
 
-  const totalSales = filteredEntries.reduce((sum, e) => sum + e.sales, 0);
-  const totalExpenses = filteredEntries.reduce((sum, e) => sum + e.expenses, 0);
+  const totalSales = filteredEntries.reduce((sum, e) => sum + getSalesCompat(e), 0);
+  const totalExpenses = filteredEntries.reduce((sum, e) => sum + getExpensesCompat(e), 0);
 
   return totalSales === 0 ? 0 : totalExpenses / totalSales;
 }
@@ -155,14 +159,14 @@ export function getWeeklyGrowth(entries: DailyEntry[]): number {
       const d = new Date(e.date);
       return d >= currentWeekStart && d <= today;
     })
-    .reduce((sum, e) => sum + calculateProfit(e.sales, e.expenses), 0);
+    .reduce((sum, e) => sum + calculateProfit(getSalesCompat(e), getExpensesCompat(e)), 0);
 
   const prevWeekProfit = entries
     .filter((e) => {
       const d = new Date(e.date);
       return d >= prevWeekStart && d <= prevWeekEnd;
     })
-    .reduce((sum, e) => sum + calculateProfit(e.sales, e.expenses), 0);
+    .reduce((sum, e) => sum + calculateProfit(getSalesCompat(e), getExpensesCompat(e)), 0);
 
   if (prevWeekProfit === 0) return 0;
   return ((currentWeekProfit - prevWeekProfit) / prevWeekProfit) * 100;

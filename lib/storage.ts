@@ -1,9 +1,11 @@
 /**
  * Secure localStorage utilities with validation
  * All data is validated against the expected schema
+ * Supports migration from old format (sales/expenses) to new format (saleItems/expenseItems)
  */
 
 import type { BusinessData, DailyEntry, StockItem, BusinessSettings } from "@/types";
+import { isValidDailyEntry as typeIsValidDailyEntry, isValidStockItem as typeIsValidStockItem } from "@/types";
 
 const STORAGE_KEY = "mon_business_data";
 
@@ -22,40 +24,64 @@ function getDefaultData(): BusinessData {
 }
 
 /**
- * Validates that a DailyEntry has required fields with correct types
+ * Migrate old DailyEntry format to new format
+ * Old format: { id, date, sales: number, expenses: number }
+ * New format: { id, date, saleItems: [], expenseItems: [], sales, expenses }
  */
-function isValidDailyEntry(entry: unknown): entry is DailyEntry {
-  if (typeof entry !== "object" || entry === null) return false;
-  const e = entry as Record<string, unknown>;
-  return (
-    typeof e.id === "string" &&
-    typeof e.date === "string" &&
-    typeof e.sales === "number" &&
-    typeof e.expenses === "number" &&
-    !isNaN(e.sales) &&
-    !isNaN(e.expenses) &&
-    e.sales >= 0 &&
-    e.expenses >= 0 &&
-    (e.timestamp === undefined || (typeof e.timestamp === "number" && e.timestamp >= 0))
-  );
+function migrateEntryToNewFormat(entry: Record<string, unknown>): DailyEntry {
+  // If already in new format, return as-is
+  if (Array.isArray(entry.saleItems) && Array.isArray(entry.expenseItems)) {
+    return {
+      id: entry.id as string,
+      date: entry.date as string,
+      saleItems: entry.saleItems as never,
+      expenseItems: entry.expenseItems as never,
+      sales: (entry.sales || 0) as number,
+      expenses: (entry.expenses || 0) as number,
+      timestamp: entry.timestamp as number | undefined,
+    };
+  }
+
+  // Convert old format to new format
+  const oldSales = (entry.sales as number) || 0;
+  const oldExpenses = (entry.expenses as number) || 0;
+
+  const saleItems = oldSales > 0 ? [{
+    productId: "_legacy_",
+    quantity: 1,
+    total: oldSales,
+  }] : [];
+
+  const expenseItems = oldExpenses > 0 ? [{
+    category: "Autre" as const,
+    amount: oldExpenses,
+  }] : [];
+
+  return {
+    id: entry.id as string,
+    date: entry.date as string,
+    saleItems,
+    expenseItems,
+    sales: oldSales,
+    expenses: oldExpenses,
+    timestamp: entry.timestamp as number | undefined,
+  };
 }
 
 /**
- * Validates that a StockItem has required fields with correct types
+ * Migrate old StockItem format to new format
+ * Old format: { id, name, quantity, threshold }
+ * New format: { id, name, quantity, threshold, totalSold: 0 }
  */
-function isValidStockItem(item: unknown): item is StockItem {
-  if (typeof item !== "object" || item === null) return false;
-  const i = item as Record<string, unknown>;
-  return (
-    typeof i.id === "string" &&
-    typeof i.name === "string" &&
-    typeof i.quantity === "number" &&
-    typeof i.threshold === "number" &&
-    !isNaN(i.quantity) &&
-    !isNaN(i.threshold) &&
-    i.quantity >= 0 &&
-    i.threshold >= 0
-  );
+function migrateStockItemToNewFormat(item: Record<string, unknown>): StockItem {
+  return {
+    id: item.id as string,
+    name: item.name as string,
+    quantity: item.quantity as number,
+    threshold: item.threshold as number,
+    totalSold: (item.totalSold as number) || 0,
+    unitPrice: item.unitPrice as number | undefined,
+  };
 }
 
 /**
@@ -71,7 +97,7 @@ function isValidBusinessSettings(settings: unknown): settings is BusinessSetting
 }
 
 /**
- * Validates the entire BusinessData structure
+ * Validates the entire BusinessData structure after migration
  */
 function isValidBusinessData(data: unknown): data is BusinessData {
   if (typeof data !== "object" || data === null) return false;
@@ -80,14 +106,15 @@ function isValidBusinessData(data: unknown): data is BusinessData {
   return (
     isValidBusinessSettings(d.settings) &&
     Array.isArray(d.entries) &&
-    d.entries.every(isValidDailyEntry) &&
+    d.entries.every(typeIsValidDailyEntry) &&
     Array.isArray(d.stock) &&
-    d.stock.every(isValidStockItem)
+    d.stock.every(typeIsValidStockItem)
   );
 }
 
 /**
  * Safely loads business data from localStorage
+ * Automatically migrates old format to new format
  * Returns default structure if not found or invalid
  */
 export function loadData(): BusinessData {
@@ -101,14 +128,28 @@ export function loadData(): BusinessData {
       return getDefaultData();
     }
 
-    const parsed = JSON.parse(stored);
+    let parsed = JSON.parse(stored) as Record<string, unknown>;
+
+    // Migrate entries if needed
+    if (Array.isArray(parsed.entries)) {
+      parsed.entries = parsed.entries.map((entry: Record<string, unknown>) => 
+        migrateEntryToNewFormat(entry)
+      );
+    }
+
+    // Migrate stock if needed
+    if (Array.isArray(parsed.stock)) {
+      parsed.stock = parsed.stock.map((item: Record<string, unknown>) => 
+        migrateStockItemToNewFormat(item)
+      );
+    }
 
     if (!isValidBusinessData(parsed)) {
-      console.warn("Invalid stored data structure, returning defaults");
+      console.warn("Invalid stored data structure after migration, returning defaults");
       return getDefaultData();
     }
 
-    return parsed;
+    return parsed as BusinessData;
   } catch (error) {
     console.error("Failed to load data from localStorage:", error);
     return getDefaultData();

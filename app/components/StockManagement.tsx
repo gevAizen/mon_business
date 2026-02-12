@@ -50,14 +50,15 @@ export function StockManagement({ onBack }: StockManagementProps) {
       return;
     }
 
+    const data = loadData();
+
     const newItem: StockItem = {
       id: editingId || generateItemId(),
       name: name.trim(),
       quantity: qty,
       threshold: thresh,
+      totalSold: editingId ? (data.stock.find(item => item.id === editingId)?.totalSold || 0) : 0,
     };
-
-    const data = loadData();
 
     if (editingId) {
       const index = data.stock.findIndex((item) => item.id === editingId);

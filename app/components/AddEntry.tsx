@@ -58,9 +58,19 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
       return;
     }
 
+    // Create new format entry with backward compat fields
     onSave({
       id: existingEntry?.id || generateEntryId(),
       date,
+      saleItems: salesNum > 0 ? [{
+        productId: "_manual_",
+        quantity: 1,
+        total: salesNum,
+      }] : [],
+      expenseItems: expensesNum > 0 ? [{
+        category: "Autre",
+        amount: expensesNum,
+      }] : [],
       sales: salesNum,
       expenses: expensesNum,
       timestamp: existingEntry?.timestamp || Date.now(),
