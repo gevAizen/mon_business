@@ -1,7 +1,9 @@
 'use client';
 
 import { fr } from '@/lib/i18n';
-import type { DailyEntry } from '@/types';
+import type { DailyEntry, SaleLineItem, ExpenseLineItem, ExpenseCategory, StockItem } from '@/types';
+import { EXPENSE_CATEGORIES } from '@/types';
+import { loadData } from '@/lib/storage';
 import { useState } from 'react';
 
 interface AddEntryProps {
@@ -10,10 +12,8 @@ interface AddEntryProps {
   onCancel: () => void;
 }
 
-/**
- * Generate a unique ID for an entry
- * Users can add multiple entries per day, each needs a unique ID
- */
+type TabType = 'sales' | 'expenses';
+
 function generateEntryId(): string {
   return `entry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
@@ -24,55 +24,115 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
     return new Date().toISOString().split('T')[0];
   });
 
-  const [sales, setSales] = useState(() =>
-    existingEntry ? existingEntry.sales.toString() : '',
-  );
-
-  const [expenses, setExpenses] = useState(() =>
-    existingEntry ? existingEntry.expenses.toString() : '',
-  );
-
+  const [activeTab, setActiveTab] = useState<TabType>('sales');
   const [error, setError] = useState('');
 
-  //  Derived values (no state, no effect)
-  const salesNum = parseFloat(sales) || 0;
-  const expensesNum = parseFloat(expenses) || 0;
-  const profit = Math.max(salesNum - expensesNum, 0);
+  // Sales tab state
+  const [saleItems, setSaleItems] = useState<SaleLineItem[]>(
+    existingEntry?.saleItems || []
+  );
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [saleQuantity, setSaleQuantity] = useState('');
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  // Expense tab state
+  const [expenseItems, setExpenseItems] = useState<ExpenseLineItem[]>(
+    existingEntry?.expenseItems || []
+  );
+  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory>('Autre');
+  const [expenseAmount, setExpenseAmount] = useState('');
+
+  // Load stock for product dropdown
+  const [stock, setStock] = useState<StockItem[]>(() => loadData().stock);
+
+  // Calculated totals
+  const totalSales = saleItems.reduce((sum, item) => sum + item.total, 0);
+  const totalExpenses = expenseItems.reduce((sum, item) => sum + item.amount, 0);
+  const profit = totalSales - totalExpenses;
+
+  const handleAddSaleItem = () => {
+    setError('');
+
+    if (!selectedProductId) {
+      setError(fr.entry.selectProduct);
+      return;
+    }
+
+    const qty = parseInt(saleQuantity, 10);
+    if (isNaN(qty) || qty <= 0) {
+      setError('Veuillez entrer une quantité valide');
+      return;
+    }
+
+    const product = stock.find((p) => p.id === selectedProductId);
+    if (!product) {
+      setError('Produit non trouvé');
+      return;
+    }
+
+    if (product.quantity < qty) {
+      setError(`Stock insuffisant. Disponible: ${product.quantity}`);
+      return;
+    }
+
+    const newSaleItem: SaleLineItem = {
+      productId: selectedProductId,
+      quantity: qty,
+      unitPrice: product.unitPrice,
+      total: qty * (product.unitPrice || 0),
+    };
+
+    setSaleItems([...saleItems, newSaleItem]);
+    setSelectedProductId('');
+    setSaleQuantity('');
+  };
+
+  const handleRemoveSaleItem = (index: number) => {
+    setSaleItems(saleItems.filter((_, i) => i !== index));
+  };
+
+  const handleAddExpenseItem = () => {
+    setError('');
+
+    const amount = parseFloat(expenseAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setError('Veuillez entrer un montant valide');
+      return;
+    }
+
+    const newExpenseItem: ExpenseLineItem = {
+      category: selectedCategory,
+      amount,
+    };
+
+    setExpenseItems([...expenseItems, newExpenseItem]);
+    setExpenseAmount('');
+  };
+
+  const handleRemoveExpenseItem = (index: number) => {
+    setExpenseItems(expenseItems.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!date) {
-      setError('Veuillez sélectionner une date');
+      setError(fr.entry.date);
       return;
     }
 
-    if (salesNum < 0 || expensesNum < 0) {
-      setError('Les montants ne peuvent pas être négatifs');
+    if (saleItems.length === 0 && expenseItems.length === 0) {
+      setError('Veuillez ajouter au moins une vente ou une dépense');
       return;
     }
 
-    if (salesNum === 0 && expensesNum === 0) {
-      setError('Veuillez entrer au moins des ventes ou des dépenses');
-      return;
-    }
-
-    // Create new format entry with backward compat fields
     onSave({
       id: existingEntry?.id || generateEntryId(),
       date,
-      saleItems: salesNum > 0 ? [{
-        productId: "_manual_",
-        quantity: 1,
-        total: salesNum,
-      }] : [],
-      expenseItems: expensesNum > 0 ? [{
-        category: "Autre",
-        amount: expensesNum,
-      }] : [],
-      sales: salesNum,
-      expenses: expensesNum,
+      saleItems,
+      expenseItems,
+      sales: totalSales,
+      expenses: totalExpenses,
       timestamp: existingEntry?.timestamp || Date.now(),
     });
   };
@@ -96,10 +156,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Date */}
           <div>
-            <label
-              htmlFor="date"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
+            <label htmlFor="date" className="block text-sm font-semibold text-gray-700 mb-2">
               {fr.entry.date}
             </label>
             <input
@@ -107,69 +164,241 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
-          {/* Sales */}
-          <div>
-            <label
-              htmlFor="sales"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
-              {fr.entry.sales}
-            </label>
-            <div className="relative">
-              <input
-                id="sales"
-                type="number"
-                value={sales}
-                onChange={(e) => setSales(e.target.value)}
-                placeholder={fr.entry.salesPlaceholder}
-                min="0"
-                step="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-              />
-              <span className="absolute right-4 top-3 text-gray-500 text-base">
-                CFA
-              </span>
-            </div>
-          </div>
-
-          {/* Expenses */}
-          <div>
-            <label
-              htmlFor="expenses"
-              className="block text-sm font-semibold text-gray-700 mb-2"
-            >
-              {fr.entry.expenses}
-            </label>
-            <div className="relative">
-              <input
-                id="expenses"
-                type="number"
-                value={expenses}
-                onChange={(e) => setExpenses(e.target.value)}
-                placeholder={fr.entry.expensesPlaceholder}
-                min="0"
-                step="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-              />
-              <span className="absolute right-4 top-3 text-gray-500 text-base">
-                CFA
-              </span>
-            </div>
-          </div>
-
-          {/* Profit */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">{fr.entry.profit}</div>
-            <div
-              className={`text-3xl font-bold ${
-                profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : 'text-gray-600'
+          {/* Tab Buttons */}
+          <div className="flex gap-2 border-b border-gray-200">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('sales');
+                setError('');
+              }}
+              className={`px-4 py-3 font-semibold transition-colors ${
+                activeTab === 'sales'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {profit.toLocaleString('fr-FR')} CFA
+              {fr.entry.addSale}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('expenses');
+                setError('');
+              }}
+              className={`px-4 py-3 font-semibold transition-colors ${
+                activeTab === 'expenses'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {fr.entry.addExpense}
+            </button>
+          </div>
+
+          {/* Sales Tab */}
+          {activeTab === 'sales' && (
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="product" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {fr.entry.selectProduct}
+                </label>
+                <select
+                  id="product"
+                  value={selectedProductId}
+                  onChange={(e) => setSelectedProductId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">-- {fr.entry.selectProduct} --</option>
+                  {stock.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} ({product.quantity} en stock)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="quantity" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {fr.entry.quantity}
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  value={saleQuantity}
+                  onChange={(e) => setSaleQuantity(e.target.value)}
+                  placeholder="0"
+                  min="1"
+                  step="1"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {selectedProductId && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  {(() => {
+                    const product = stock.find((p) => p.id === selectedProductId);
+                    const qty = parseInt(saleQuantity, 10) || 0;
+                    const unitPrice = product?.unitPrice || 0;
+                    return (
+                      <>
+                        <div className="text-sm text-gray-600 mb-2">
+                          {fr.entry.unitPrice}: {unitPrice.toLocaleString('fr-FR')} CFA
+                        </div>
+                        <div className="text-lg font-bold text-blue-600">
+                          {fr.entry.total}: {(qty * unitPrice).toLocaleString('fr-FR')} CFA
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleAddSaleItem}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                {fr.entry.addLineItem}
+              </button>
+
+              {/* Sale Items List */}
+              {saleItems.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                  <div className="font-semibold text-gray-900">Items ajoutés:</div>
+                  {saleItems.map((item, index) => {
+                    const product = stock.find((p) => p.id === item.productId);
+                    return (
+                      <div key={index} className="flex justify-between items-center bg-white p-3 rounded">
+                        <div>
+                          <div className="font-medium text-gray-900">{product?.name}</div>
+                          <div className="text-sm text-gray-600">
+                            {item.quantity} × {item.unitPrice?.toLocaleString('fr-FR')} CFA
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600">
+                            {item.total.toLocaleString('fr-FR')} CFA
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSaleItem(index)}
+                            className="text-red-600 hover:text-red-700 text-sm font-semibold"
+                          >
+                            {fr.entry.removeLineItem}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Expenses Tab */}
+          {activeTab === 'expenses' && (
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {fr.entry.expenseCategory}
+                </label>
+                <select
+                  id="category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value as ExpenseCategory)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {fr.expenseCategories[cat as ExpenseCategory]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="amount" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {fr.common.amount}
+                </label>
+                <div className="relative">
+                  <input
+                    id="amount"
+                    type="number"
+                    value={expenseAmount}
+                    onChange={(e) => setExpenseAmount(e.target.value)}
+                    placeholder="0"
+                    min="0"
+                    step="1"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="absolute right-4 top-3 text-gray-500">CFA</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddExpenseItem}
+                className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                {fr.entry.addLineItem}
+              </button>
+
+              {/* Expense Items List */}
+              {expenseItems.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
+                  <div className="font-semibold text-gray-900">Dépenses ajoutées:</div>
+                  {expenseItems.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center bg-white p-3 rounded">
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {fr.expenseCategories[item.category as ExpenseCategory]}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-orange-600">
+                          {item.amount.toLocaleString('fr-FR')} CFA
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExpenseItem(index)}
+                          className="text-red-600 hover:text-red-700 text-sm font-semibold"
+                        >
+                          {fr.entry.removeLineItem}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Profit Summary */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Ventes</div>
+                <div className="text-lg font-bold text-green-600">
+                  {totalSales.toLocaleString('fr-FR')} CFA
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Dépenses</div>
+                <div className="text-lg font-bold text-orange-600">
+                  {totalExpenses.toLocaleString('fr-FR')} CFA
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Profit</div>
+                <div className={`text-lg font-bold ${profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                  {profit.toLocaleString('fr-FR')} CFA
+                </div>
+              </div>
             </div>
           </div>
 

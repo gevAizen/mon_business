@@ -5,10 +5,12 @@
 
 import type { DailyEntry, BusinessData } from "@/types";
 import { saveData, loadData } from "./storage";
+import { applyEntryToStock } from "./stock";
 
 /**
  * Add or update an entry in the database
  * If entry with same ID exists, it updates it. Otherwise, adds new entry.
+ * Automatically updates stock based on product sales.
  */
 export function addOrUpdateEntry(entry: DailyEntry): boolean {
   try {
@@ -18,11 +20,25 @@ export function addOrUpdateEntry(entry: DailyEntry): boolean {
     const existingIndex = data.entries.findIndex((e) => e.id === entry.id);
 
     if (existingIndex >= 0) {
-      // Update existing
+      // Update existing: revert old stock changes, apply new ones
+      const oldEntry = data.entries[existingIndex];
+      
+      // Revert old sales stock (add quantity back)
+      oldEntry.saleItems.forEach((sale) => {
+        const stockIndex = data.stock.findIndex((s) => s.id === sale.productId);
+        if (stockIndex >= 0) {
+          data.stock[stockIndex].quantity += sale.quantity;
+          data.stock[stockIndex].totalSold = Math.max(0, data.stock[stockIndex].totalSold - sale.quantity);
+        }
+      });
+
+      // Apply new entry
       data.entries[existingIndex] = entry;
+      data.stock = applyEntryToStock(data.stock, entry.saleItems);
     } else {
-      // Add new
+      // Add new entry and apply stock changes
       data.entries.push(entry);
+      data.stock = applyEntryToStock(data.stock, entry.saleItems);
     }
 
     // Sort entries by date then timestamp
@@ -43,10 +59,24 @@ export function addOrUpdateEntry(entry: DailyEntry): boolean {
 
 /**
  * Delete an entry by ID
+ * Restores stock quantities when deleting an entry
  */
 export function deleteEntry(entryId: string): boolean {
   try {
     const data = loadData();
+    const entryToDelete = data.entries.find((e) => e.id === entryId);
+
+    if (entryToDelete) {
+      // Restore stock (add quantities back)
+      entryToDelete.saleItems.forEach((sale) => {
+        const stockIndex = data.stock.findIndex((s) => s.id === sale.productId);
+        if (stockIndex >= 0) {
+          data.stock[stockIndex].quantity += sale.quantity;
+          data.stock[stockIndex].totalSold = Math.max(0, data.stock[stockIndex].totalSold - sale.quantity);
+        }
+      });
+    }
+
     data.entries = data.entries.filter((e) => e.id !== entryId);
     return saveData(data);
   } catch (error) {

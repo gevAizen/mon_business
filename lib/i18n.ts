@@ -148,6 +148,7 @@ export const fr = {
     success: 'Succès',
     install: 'Installer',
     no: 'Non',
+    amount: 'Montant',
   },
 
   // Install Banner
