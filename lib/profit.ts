@@ -8,9 +8,10 @@ import type { DailyEntry } from "@/types";
 
 /**
  * Calculate profit for a single entry
+ * Returns negative value if expenses exceed sales (business loss)
  */
 export function calculateProfit(sales: number, expenses: number): number {
-  return Math.max(sales - expenses, 0);
+  return sales - expenses;
 }
 
 /**

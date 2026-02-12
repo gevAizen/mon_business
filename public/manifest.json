@@ -1,0 +1,68 @@
+{
+  "name": "MonBusiness - Suivi de Business",
+  "short_name": "MonBusiness",
+  "description": "Suivez votre profit et inventaire avec simplicité. Sans connexion, sans backend.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#60b8c0",
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/img/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/img/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "form_factor": "narrow"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/img/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ajouter une entrée",
+      "short_name": "Ajouter",
+      "description": "Enregistrez rapidement une vente ou dépense",
+      "url": "/?action=add-entry",
+      "icons": [
+        {
+          "src": "/img/icon.png",
+          "type": "image/png",
+          "sizes": "512x512"
+        }
+      ]
+    },
+    {
+      "name": "Voir l'inventaire",
+      "short_name": "Stock",
+      "description": "Gérez votre inventaire",
+      "url": "/?action=stock",
+      "icons": [
+        {
+          "src": "/img/icon.png",
+          "type": "image/png",
+          "sizes": "512x512"
+        }
+      ]
+    }
+  ]
+}

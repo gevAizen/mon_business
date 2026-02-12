@@ -69,7 +69,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder={fr.onboarding.businessNamePlaceholder}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               autoFocus
             />
           </div>
@@ -89,7 +89,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               onChange={(e) => setDailyTarget(e.target.value)}
               placeholder={fr.onboarding.dailyTargetPlaceholder}
               min="0"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
             />
           </div>
 
@@ -103,24 +103,24 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           {/* Submit Button - Large and prominent */}
           <button
             type="submit"
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-lg"
+            className="w-full py-4 bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-lg"
           >
             {fr.onboarding.startButton}
           </button>
         </form>
 
         {/* Trust/Why Section - Build confidence */}
-        <div className="space-y-3 text-center text-sm text-gray-600">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-lg">✓</span>
+        <div className="space-y-3 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <span className="text-lg text-green-500">✓</span>
             <span>Aucune donnée ne quitte votre téléphone</span>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-lg">✓</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg text-green-500">✓</span>
             <span>Fonctionne hors ligne</span>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-lg">✓</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg text-green-500">✓</span>
             <span>Vos données, votre privacy</span>
           </div>
         </div>

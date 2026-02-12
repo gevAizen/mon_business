@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import type { StockItem } from "@/types";
-import { loadData, saveData } from "@/lib/storage";
-import { fr } from "@/lib/i18n";
+import { fr } from '@/lib/i18n';
+import { loadData, saveData } from '@/lib/storage';
+import type { StockItem } from '@/types';
+import { useState } from 'react';
 
 interface StockManagementProps {
   onBack: () => void;
@@ -17,29 +17,28 @@ function generateItemId(): string {
 }
 
 export function StockManagement({ onBack }: StockManagementProps) {
-  const [items, setItems] = useState<StockItem[]>([]);
+  const [items, setItems] = useState<StockItem[]>(() => {
+    const data = loadData();
+    return data.stock;
+  });
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [threshold, setThreshold] = useState("");
-  const [error, setError] = useState("");
+  const [name, setName] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [threshold, setThreshold] = useState('');
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadStockItems();
-  }, []);
-
-  const loadStockItems = () => {
+  const refreshStock = () => {
     const data = loadData();
     setItems(data.stock);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (!name.trim()) {
-      setError("Veuillez entrer un nom de produit");
+      setError('Veuillez entrer un nom de produit');
       return;
     }
 
@@ -47,7 +46,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
     const thresh = parseInt(threshold, 10);
 
     if (isNaN(qty) || isNaN(thresh) || qty < 0 || thresh < 0) {
-      setError("Veuillez entrer des nombres valides");
+      setError('Veuillez entrer des nombres valides');
       return;
     }
 
@@ -70,12 +69,12 @@ export function StockManagement({ onBack }: StockManagementProps) {
     }
 
     if (saveData(data)) {
-      setName("");
-      setQuantity("");
-      setThreshold("");
+      setName('');
+      setQuantity('');
+      setThreshold('');
       setEditingId(null);
       setShowAddForm(false);
-      loadStockItems();
+      refreshStock();
     }
   };
 
@@ -91,17 +90,17 @@ export function StockManagement({ onBack }: StockManagementProps) {
     const data = loadData();
     data.stock = data.stock.filter((item) => item.id !== itemId);
     if (saveData(data)) {
-      loadStockItems();
+      refreshStock();
     }
   };
 
   const handleCancel = () => {
-    setName("");
-    setQuantity("");
-    setThreshold("");
+    setName('');
+    setQuantity('');
+    setThreshold('');
     setEditingId(null);
     setShowAddForm(false);
-    setError("");
+    setError('');
   };
 
   const isLowStock = (item: StockItem) => item.quantity <= item.threshold;
@@ -109,12 +108,14 @@ export function StockManagement({ onBack }: StockManagementProps) {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-b from-blue-50 to-white px-6 pt-6 pb-8 flex items-center gap-4">
-        <button onClick={onBack} className="text-2xl">
+      <div className="bg-linear-to-b from-blue-50 to-white px-6 pt-6 pb-8 flex items-center gap-4">
+        {/* <button onClick={onBack} className="text-2xl">
           ←
-        </button>
+        </button> */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{fr.stock.inventory}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {fr.stock.inventory}
+          </h1>
           <p className="text-gray-600 text-sm">Gérez votre inventaire</p>
         </div>
       </div>
@@ -127,7 +128,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
             handleCancel();
             setShowAddForm(true);
           }}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-colors text-lg"
+          className="w-full bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-colors text-lg"
         >
           + {fr.stock.addProduct}
         </button>
@@ -136,7 +137,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
         {showAddForm && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
             <h2 className="font-semibold text-gray-900 text-lg">
-              {editingId ? "Modifier le produit" : "Ajouter un produit"}
+              {editingId ? 'Modifier le produit' : 'Ajouter un produit'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -150,7 +151,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Tissu, Fil, Savon..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -165,7 +166,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -180,7 +181,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
                   onChange={(e) => setThreshold(e.target.value)}
                   placeholder="Quantité minimale"
                   min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -202,9 +203,9 @@ export function StockManagement({ onBack }: StockManagementProps) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                  className="flex-1 py-2 bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                 >
-                  {editingId ? "Mettre à jour" : "Ajouter"}
+                  {editingId ? 'Mettre à jour' : 'Ajouter'}
                 </button>
               </div>
             </form>
@@ -223,14 +224,16 @@ export function StockManagement({ onBack }: StockManagementProps) {
                 key={item.id}
                 className={`border-2 rounded-xl p-4 ${
                   isLowStock(item)
-                    ? "border-amber-200 bg-amber-50"
-                    : "border-gray-200 bg-white hover:border-gray-300"
+                    ? 'border-amber-200 bg-amber-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                      <h3 className="font-semibold text-gray-900">
+                        {item.name}
+                      </h3>
                       {isLowStock(item) && (
                         <span className="text-xs bg-amber-600 text-white px-2 py-1 rounded-full">
                           ⚠️ Bas
@@ -238,8 +241,9 @@ export function StockManagement({ onBack }: StockManagementProps) {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      Quantité: <span className="font-semibold">{item.quantity}</span> (Seuil:{" "}
-                      {item.threshold})
+                      Quantité:{' '}
+                      <span className="font-semibold">{item.quantity}</span>{' '}
+                      (Seuil: {item.threshold})
                     </p>
                   </div>
                 </div>
@@ -248,13 +252,13 @@ export function StockManagement({ onBack }: StockManagementProps) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(item)}
-                    className="flex-1 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                    className="flex-1 py-2 text-sm font-semibold text-[#60b8c0] hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
                   >
                     {fr.stock.edit}
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm("Êtes-vous sûr ?")) {
+                      if (confirm('Êtes-vous sûr ?')) {
                         handleDelete(item.id);
                       }
                     }}

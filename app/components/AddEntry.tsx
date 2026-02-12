@@ -97,7 +97,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
@@ -118,7 +118,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
                 placeholder={fr.entry.salesPlaceholder}
                 min="0"
                 step="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
               />
               <span className="absolute right-4 top-3 text-gray-500 text-base">
                 CFA
@@ -143,7 +143,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
                 placeholder={fr.entry.expensesPlaceholder}
                 min="0"
                 step="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
               />
               <span className="absolute right-4 top-3 text-gray-500 text-base">
                 CFA
@@ -156,7 +156,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
             <div className="text-sm text-gray-600 mb-1">{fr.entry.profit}</div>
             <div
               className={`text-3xl font-bold ${
-                profit > 0 ? 'text-green-600' : 'text-gray-600'
+                profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : 'text-gray-600'
               }`}
             >
               {profit.toLocaleString('fr-FR')} CFA
@@ -181,7 +181,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              className="flex-1 py-3 bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
             >
               {fr.entry.save}
             </button>
