@@ -122,7 +122,7 @@ Current system lacks inventory tracking depth and expense insights:
   - [ ] Top performers update as sales accumulate
 - [ ] Test edge cases:
   - [ ] Selling product that doesn't exist (error handling)
-  - [ ] Deleting an entry → should stock be restored? (decide & implement)
+  - [x] Deleting an entry → should stock be restored
   - [ ] Zero-quantity products in sales
 
 ---

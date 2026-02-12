@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { DailyEntry } from '@/types';
+import { useState, useEffect, useCallback } from "react";
+import type { DailyEntry } from "@/types";
 import {
   deleteEntry,
   getEntriesForDate,
   addOrUpdateEntry,
-} from '@/lib/entries';
-import { fr } from '@/lib/i18n';
-import { AddEntry } from './AddEntry';
+} from "@/lib/entries";
+import { fr } from "@/lib/i18n";
+import { AddEntry } from "./AddEntry";
 
 interface EntriesListProps {
   onBack: () => void;
@@ -18,22 +18,30 @@ export function EntriesList({ onBack }: EntriesListProps) {
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [editingEntry, setEditingEntry] = useState<DailyEntry | undefined>();
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0],
+    new Date().toISOString().split("T")[0],
   );
+  const [entries, setEntries] = useState<DailyEntry[]>([]);
 
-  //  Derived directly from selectedDate
-  const entries = getEntriesForDate(selectedDate);
+  const refreshEntries = useCallback(() => {
+    setEntries(getEntriesForDate(selectedDate));
+  }, [selectedDate]);
+
+  useEffect(() => {
+    refreshEntries();
+  }, [refreshEntries]);
 
   const handleAddEntry = (entry: DailyEntry) => {
     if (addOrUpdateEntry(entry)) {
       setShowAddEntry(false);
       setEditingEntry(undefined);
+      refreshEntries();
     }
   };
 
   const handleDelete = (entryId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette entrée ?')) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cette entrée ?")) {
       if (deleteEntry(entryId)) {
+        refreshEntries();
       }
     }
   };
@@ -87,13 +95,13 @@ export function EntriesList({ onBack }: EntriesListProps) {
             <div>
               <p className="text-xs text-gray-600 font-semibold">Ventes</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dayTotal.sales.toLocaleString('fr-FR')}
+                {dayTotal.sales.toLocaleString("fr-FR")}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-600 font-semibold">Dépenses</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
-                {dayTotal.expenses.toLocaleString('fr-FR')}
+                {dayTotal.expenses.toLocaleString("fr-FR")}
               </p>
             </div>
             <div>
@@ -101,13 +109,13 @@ export function EntriesList({ onBack }: EntriesListProps) {
               <p
                 className={`text-2xl font-bold mt-1 ${
                   dayProfit > 0
-                    ? 'text-green-600'
+                    ? "text-green-600"
                     : dayProfit < 0
-                      ? 'text-red-600'
-                      : 'text-gray-600'
+                      ? "text-red-600"
+                      : "text-gray-600"
                 }`}
               >
-                {dayProfit.toLocaleString('fr-FR')}
+                {dayProfit.toLocaleString("fr-FR")}
               </p>
             </div>
           </div>
@@ -134,11 +142,11 @@ export function EntriesList({ onBack }: EntriesListProps) {
             {entries.map((entry) => {
               const entryProfit = entry.sales - entry.expenses;
               const time = entry.timestamp
-                ? new Date(entry.timestamp).toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
+                ? new Date(entry.timestamp).toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })
-                : '—';
+                : "—";
 
               return (
                 <div
@@ -154,25 +162,29 @@ export function EntriesList({ onBack }: EntriesListProps) {
                         <div>
                           <p className="text-xs text-gray-600">Ventes</p>
                           <p className="font-semibold text-gray-900">
-                            {entry.sales.toLocaleString('fr-FR')} CFA
+                            {entry.sales.toLocaleString("fr-FR")} CFA
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">Dépenses</p>
                           <p className="font-semibold text-gray-900">
-                            {entry.expenses.toLocaleString('fr-FR')} CFA
+                            {entry.expenses.toLocaleString("fr-FR")} CFA
                           </p>
                         </div>
                       </div>
                     </div>
                     <div
                       className={`text-right ${
-                        entryProfit > 0 ? 'text-green-600' : entryProfit < 0 ? 'text-red-600' : 'text-gray-600'
+                        entryProfit > 0
+                          ? "text-green-600"
+                          : entryProfit < 0
+                            ? "text-red-600"
+                            : "text-gray-600"
                       }`}
                     >
                       <p className="text-xs font-semibold">Profit</p>
                       <p className="text-lg font-bold">
-                        {entryProfit.toLocaleString('fr-FR')}
+                        {entryProfit.toLocaleString("fr-FR")}
                       </p>
                     </div>
                   </div>

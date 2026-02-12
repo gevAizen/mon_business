@@ -13,7 +13,7 @@ import type { StockItem, DailyEntry, SaleLineItem } from "@/types";
 export function deductStockFromSale(
   stockItems: StockItem[],
   productId: string,
-  quantity: number
+  quantity: number,
 ): number | null {
   const item = stockItems.find((s) => s.id === productId);
   if (!item) return null;
@@ -28,17 +28,25 @@ export function deductStockFromSale(
  */
 export function applyEntryToStock(
   stockItems: StockItem[],
-  saleItems: SaleLineItem[]
+  saleItems: SaleLineItem[],
 ): StockItem[] {
   const updatedItems = [...stockItems];
 
   saleItems.forEach((sale) => {
     const itemIndex = updatedItems.findIndex((s) => s.id === sale.productId);
     if (itemIndex >= 0) {
+      const currentRevenue =
+        updatedItems[itemIndex].totalSold *
+        (updatedItems[itemIndex].unitPrice || 0);
+      const newRevenue = currentRevenue + sale.total;
+      const newTotalSold = updatedItems[itemIndex].totalSold + sale.quantity;
+      const newAveragePrice = newTotalSold > 0 ? newRevenue / newTotalSold : 0;
+
       updatedItems[itemIndex] = {
         ...updatedItems[itemIndex],
         quantity: Math.max(0, updatedItems[itemIndex].quantity - sale.quantity),
-        totalSold: updatedItems[itemIndex].totalSold + sale.quantity,
+        totalSold: newTotalSold,
+        unitPrice: Math.round(newAveragePrice),
       };
     }
   });
@@ -60,7 +68,8 @@ export function getLowStockItems(stockItems: StockItem[]): LowStockItem[] {
     .filter((item) => item.quantity <= item.threshold)
     .map((item) => ({
       item,
-      remainingPercentage: item.threshold > 0 ? (item.quantity / item.threshold) * 100 : 0,
+      remainingPercentage:
+        item.threshold > 0 ? (item.quantity / item.threshold) * 100 : 0,
     }))
     .sort((a, b) => a.remainingPercentage - b.remainingPercentage);
 }
@@ -84,7 +93,7 @@ export interface TopSellingProduct {
 
 export function getTopSellingProducts(
   stockItems: StockItem[],
-  limit: number = 5
+  limit: number = 5,
 ): TopSellingProduct[] {
   return stockItems
     .filter((item) => item.totalSold > 0)
@@ -111,7 +120,7 @@ export interface TopRevenueProduct {
 export function getTopRevenueProducts(
   stockItems: StockItem[],
   entries: DailyEntry[],
-  limit: number = 5
+  limit: number = 5,
 ): TopRevenueProduct[] {
   const productRevenue: Record<string, { revenue: number; units: number }> = {};
 
@@ -126,7 +135,9 @@ export function getTopRevenueProducts(
   });
 
   return stockItems
-    .filter((item) => productRevenue[item.id] && productRevenue[item.id].revenue > 0)
+    .filter(
+      (item) => productRevenue[item.id] && productRevenue[item.id].revenue > 0,
+    )
     .map((item) => {
       const data = productRevenue[item.id];
       return {
@@ -155,10 +166,16 @@ export function getInventoryValue(stockItems: StockItem[]): number {
  * Get inventory turnover ratio (units sold per day)
  * Useful for business analytics
  */
-export function getInventoryTurnover(stockItems: StockItem[], daysTracked: number = 30): number {
+export function getInventoryTurnover(
+  stockItems: StockItem[],
+  daysTracked: number = 30,
+): number {
   if (daysTracked <= 0) return 0;
 
-  const totalUnitsSold = stockItems.reduce((sum, item) => sum + item.totalSold, 0);
+  const totalUnitsSold = stockItems.reduce(
+    (sum, item) => sum + item.totalSold,
+    0,
+  );
   return daysTracked > 0 ? totalUnitsSold / daysTracked : 0;
 }
 
@@ -174,13 +191,23 @@ export interface StockHealthStatus {
   averageStock: number;
 }
 
-export function getStockHealthStatus(stockItems: StockItem[]): StockHealthStatus {
-  const lowStockCount = stockItems.filter((item) => item.quantity > 0 && item.quantity <= item.threshold).length;
-  const outOfStockCount = stockItems.filter((item) => item.quantity === 0).length;
-  const wellStockedCount = stockItems.filter((item) => item.quantity > item.threshold).length;
-  const averageStock = stockItems.length > 0
-    ? stockItems.reduce((sum, item) => sum + item.quantity, 0) / stockItems.length
-    : 0;
+export function getStockHealthStatus(
+  stockItems: StockItem[],
+): StockHealthStatus {
+  const lowStockCount = stockItems.filter(
+    (item) => item.quantity > 0 && item.quantity <= item.threshold,
+  ).length;
+  const outOfStockCount = stockItems.filter(
+    (item) => item.quantity === 0,
+  ).length;
+  const wellStockedCount = stockItems.filter(
+    (item) => item.quantity > item.threshold,
+  ).length;
+  const averageStock =
+    stockItems.length > 0
+      ? stockItems.reduce((sum, item) => sum + item.quantity, 0) /
+        stockItems.length
+      : 0;
 
   return {
     totalItems: stockItems.length,
@@ -194,13 +221,19 @@ export function getStockHealthStatus(stockItems: StockItem[]): StockHealthStatus
 /**
  * Find a product by ID
  */
-export function findProductById(stockItems: StockItem[], productId: string): StockItem | undefined {
+export function findProductById(
+  stockItems: StockItem[],
+  productId: string,
+): StockItem | undefined {
   return stockItems.find((item) => item.id === productId);
 }
 
 /**
  * Check if product exists in stock
  */
-export function productExists(stockItems: StockItem[], productId: string): boolean {
+export function productExists(
+  stockItems: StockItem[],
+  productId: string,
+): boolean {
   return stockItems.some((item) => item.id === productId);
 }

@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { fr } from '@/lib/i18n';
-import type { DailyEntry, SaleLineItem, ExpenseLineItem, ExpenseCategory, StockItem } from '@/types';
-import { EXPENSE_CATEGORIES } from '@/types';
-import { loadData } from '@/lib/storage';
-import { useState } from 'react';
+import { fr } from "@/lib/i18n";
+import type {
+  DailyEntry,
+  SaleLineItem,
+  ExpenseLineItem,
+  ExpenseCategory,
+  StockItem,
+} from "@/types";
+import { EXPENSE_CATEGORIES } from "@/types";
+import { loadData } from "@/lib/storage";
+import { useState } from "react";
 
 interface AddEntryProps {
   existingEntry?: DailyEntry;
@@ -12,7 +18,7 @@ interface AddEntryProps {
   onCancel: () => void;
 }
 
-type TabType = 'sales' | 'expenses';
+type TabType = "sales" | "expenses";
 
 function generateEntryId(): string {
   return `entry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -21,36 +27,41 @@ function generateEntryId(): string {
 export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
   const [date, setDate] = useState(() => {
     if (existingEntry) return existingEntry.date;
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   });
 
-  const [activeTab, setActiveTab] = useState<TabType>('sales');
-  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<TabType>("sales");
+  const [error, setError] = useState("");
 
   // Sales tab state
   const [saleItems, setSaleItems] = useState<SaleLineItem[]>(
-    existingEntry?.saleItems || []
+    existingEntry?.saleItems || [],
   );
-  const [selectedProductId, setSelectedProductId] = useState('');
-  const [saleQuantity, setSaleQuantity] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [saleQuantity, setSaleQuantity] = useState("");
+  const [totalPrice, setTotalPrice] = useState("");
 
   // Expense tab state
   const [expenseItems, setExpenseItems] = useState<ExpenseLineItem[]>(
-    existingEntry?.expenseItems || []
+    existingEntry?.expenseItems || [],
   );
-  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory>('Autre');
-  const [expenseAmount, setExpenseAmount] = useState('');
+  const [selectedCategory, setSelectedCategory] =
+    useState<ExpenseCategory>("Autre");
+  const [expenseAmount, setExpenseAmount] = useState("");
 
   // Load stock for product dropdown
   const [stock, setStock] = useState<StockItem[]>(() => loadData().stock);
 
   // Calculated totals
   const totalSales = saleItems.reduce((sum, item) => sum + item.total, 0);
-  const totalExpenses = expenseItems.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = expenseItems.reduce(
+    (sum, item) => sum + item.amount,
+    0,
+  );
   const profit = totalSales - totalExpenses;
 
   const handleAddSaleItem = () => {
-    setError('');
+    setError("");
 
     if (!selectedProductId) {
       setError(fr.entry.selectProduct);
@@ -58,14 +69,21 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
     }
 
     const qty = parseInt(saleQuantity, 10);
+    const total = parseInt(totalPrice, 10);
+
     if (isNaN(qty) || qty <= 0) {
-      setError('Veuillez entrer une quantité valide');
+      setError("Veuillez entrer une quantité valide");
+      return;
+    }
+
+    if (isNaN(total) || total < 0) {
+      setError("Veuillez entrer un prix total valide");
       return;
     }
 
     const product = stock.find((p) => p.id === selectedProductId);
     if (!product) {
-      setError('Produit non trouvé');
+      setError("Produit non trouvé");
       return;
     }
 
@@ -77,13 +95,14 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
     const newSaleItem: SaleLineItem = {
       productId: selectedProductId,
       quantity: qty,
-      unitPrice: product.unitPrice,
-      total: qty * (product.unitPrice || 0),
+      unitPrice: Math.round(total / qty),
+      total: total,
     };
 
     setSaleItems([...saleItems, newSaleItem]);
-    setSelectedProductId('');
-    setSaleQuantity('');
+    setSelectedProductId("");
+    setSaleQuantity("");
+    setTotalPrice("");
   };
 
   const handleRemoveSaleItem = (index: number) => {
@@ -91,11 +110,11 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
   };
 
   const handleAddExpenseItem = () => {
-    setError('');
+    setError("");
 
     const amount = parseFloat(expenseAmount);
     if (isNaN(amount) || amount <= 0) {
-      setError('Veuillez entrer un montant valide');
+      setError("Veuillez entrer un montant valide");
       return;
     }
 
@@ -105,7 +124,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
     };
 
     setExpenseItems([...expenseItems, newExpenseItem]);
-    setExpenseAmount('');
+    setExpenseAmount("");
   };
 
   const handleRemoveExpenseItem = (index: number) => {
@@ -114,7 +133,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!date) {
       setError(fr.entry.date);
@@ -122,7 +141,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
     }
 
     if (saleItems.length === 0 && expenseItems.length === 0) {
-      setError('Veuillez ajouter au moins une vente ou une dépense');
+      setError("Veuillez ajouter au moins une vente ou une dépense");
       return;
     }
 
@@ -156,7 +175,10 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Date */}
           <div>
-            <label htmlFor="date" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="date"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               {fr.entry.date}
             </label>
             <input
@@ -173,13 +195,13 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
             <button
               type="button"
               onClick={() => {
-                setActiveTab('sales');
-                setError('');
+                setActiveTab("sales");
+                setError("");
               }}
               className={`px-4 py-3 font-semibold transition-colors ${
-                activeTab === 'sales'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                activeTab === "sales"
+                  ? "border-b-2 border-blue-500 text-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               {fr.entry.addSale}
@@ -187,13 +209,13 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
             <button
               type="button"
               onClick={() => {
-                setActiveTab('expenses');
-                setError('');
+                setActiveTab("expenses");
+                setError("");
               }}
               className={`px-4 py-3 font-semibold transition-colors ${
-                activeTab === 'expenses'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                activeTab === "expenses"
+                  ? "border-b-2 border-blue-500 text-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               {fr.entry.addExpense}
@@ -201,10 +223,13 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
           </div>
 
           {/* Sales Tab */}
-          {activeTab === 'sales' && (
+          {activeTab === "sales" && (
             <div className="space-y-4">
               <div>
-                <label htmlFor="product" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="product"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   {fr.entry.selectProduct}
                 </label>
                 <select
@@ -223,7 +248,10 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               </div>
 
               <div>
-                <label htmlFor="quantity" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="quantity"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   {fr.entry.quantity}
                 </label>
                 <input
@@ -241,17 +269,40 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               {selectedProductId && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   {(() => {
-                    const product = stock.find((p) => p.id === selectedProductId);
+                    const product = stock.find(
+                      (p) => p.id === selectedProductId,
+                    );
                     const qty = parseInt(saleQuantity, 10) || 0;
                     const unitPrice = product?.unitPrice || 0;
                     return (
                       <>
-                        <div className="text-sm text-gray-600 mb-2">
-                          {fr.entry.unitPrice}: {unitPrice.toLocaleString('fr-FR')} CFA
+                        <div className="mb-2">
+                          <label
+                            htmlFor="totalPrice"
+                            className="block text-sm font-semibold text-gray-700 mb-1"
+                          >
+                            Prix Total (CFA)
+                          </label>
+                          <input
+                            id="totalPrice"
+                            type="number"
+                            value={totalPrice}
+                            onChange={(e) => setTotalPrice(e.target.value)}
+                            placeholder="Prix total négocié"
+                            min="0"
+                            className="w-full px-4 py-2 border border-blue-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
-                        <div className="text-lg font-bold text-blue-600">
-                          {fr.entry.total}: {(qty * unitPrice).toLocaleString('fr-FR')} CFA
-                        </div>
+                        {parseInt(totalPrice) > 0 &&
+                          parseInt(saleQuantity) > 0 && (
+                            <div className="text-sm text-gray-600">
+                              Prix unitaire calculé:{" "}
+                              {(
+                                parseInt(totalPrice) / parseInt(saleQuantity)
+                              ).toLocaleString("fr-FR")}{" "}
+                              CFA
+                            </div>
+                          )}
                       </>
                     );
                   })()}
@@ -269,20 +320,28 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               {/* Sale Items List */}
               {saleItems.length > 0 && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                  <div className="font-semibold text-gray-900">Items ajoutés:</div>
+                  <div className="font-semibold text-gray-900">
+                    Items ajoutés:
+                  </div>
                   {saleItems.map((item, index) => {
                     const product = stock.find((p) => p.id === item.productId);
                     return (
-                      <div key={index} className="flex justify-between items-center bg-white p-3 rounded">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center bg-white p-3 rounded"
+                      >
                         <div>
-                          <div className="font-medium text-gray-900">{product?.name}</div>
+                          <div className="font-medium text-gray-900">
+                            {product?.name}
+                          </div>
                           <div className="text-sm text-gray-600">
-                            {item.quantity} × {item.unitPrice?.toLocaleString('fr-FR')} CFA
+                            {item.quantity} ×{" "}
+                            {item.unitPrice?.toLocaleString("fr-FR")} CFA
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-green-600">
-                            {item.total.toLocaleString('fr-FR')} CFA
+                            {item.total.toLocaleString("fr-FR")} CFA
                           </div>
                           <button
                             type="button"
@@ -301,16 +360,21 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
           )}
 
           {/* Expenses Tab */}
-          {activeTab === 'expenses' && (
+          {activeTab === "expenses" && (
             <div className="space-y-4">
               <div>
-                <label htmlFor="category" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   {fr.entry.expenseCategory}
                 </label>
                 <select
                   id="category"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value as ExpenseCategory)}
+                  onChange={(e) =>
+                    setSelectedCategory(e.target.value as ExpenseCategory)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {EXPENSE_CATEGORIES.map((cat) => (
@@ -322,7 +386,10 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               </div>
 
               <div>
-                <label htmlFor="amount" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   {fr.common.amount}
                 </label>
                 <div className="relative">
@@ -336,7 +403,9 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
                     step="1"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <span className="absolute right-4 top-3 text-gray-500">CFA</span>
+                  <span className="absolute right-4 top-3 text-gray-500">
+                    CFA
+                  </span>
                 </div>
               </div>
 
@@ -351,17 +420,26 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               {/* Expense Items List */}
               {expenseItems.length > 0 && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
-                  <div className="font-semibold text-gray-900">Dépenses ajoutées:</div>
+                  <div className="font-semibold text-gray-900">
+                    Dépenses ajoutées:
+                  </div>
                   {expenseItems.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center bg-white p-3 rounded">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center bg-white p-3 rounded"
+                    >
                       <div>
                         <div className="font-medium text-gray-900">
-                          {fr.expenseCategories[item.category as ExpenseCategory]}
+                          {
+                            fr.expenseCategories[
+                              item.category as ExpenseCategory
+                            ]
+                          }
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-orange-600">
-                          {item.amount.toLocaleString('fr-FR')} CFA
+                          {item.amount.toLocaleString("fr-FR")} CFA
                         </div>
                         <button
                           type="button"
@@ -384,19 +462,21 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               <div>
                 <div className="text-xs text-gray-600 mb-1">Ventes</div>
                 <div className="text-lg font-bold text-green-600">
-                  {totalSales.toLocaleString('fr-FR')} CFA
+                  {totalSales.toLocaleString("fr-FR")} CFA
                 </div>
               </div>
               <div>
                 <div className="text-xs text-gray-600 mb-1">Dépenses</div>
                 <div className="text-lg font-bold text-orange-600">
-                  {totalExpenses.toLocaleString('fr-FR')} CFA
+                  {totalExpenses.toLocaleString("fr-FR")} CFA
                 </div>
               </div>
               <div>
                 <div className="text-xs text-gray-600 mb-1">Profit</div>
-                <div className={`text-lg font-bold ${profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                  {profit.toLocaleString('fr-FR')} CFA
+                <div
+                  className={`text-lg font-bold ${profit > 0 ? "text-green-600" : profit < 0 ? "text-red-600" : "text-gray-600"}`}
+                >
+                  {profit.toLocaleString("fr-FR")} CFA
                 </div>
               </div>
             </div>

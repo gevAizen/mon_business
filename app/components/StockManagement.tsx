@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { fr } from '@/lib/i18n';
-import { loadData, saveData } from '@/lib/storage';
-import type { StockItem } from '@/types';
-import { useState } from 'react';
+import { fr } from "@/lib/i18n";
+import { loadData, saveData } from "@/lib/storage";
+import type { StockItem } from "@/types";
+import { useState } from "react";
 
 interface StockManagementProps {
   onBack: () => void;
@@ -23,22 +23,22 @@ export function StockManagement({ onBack }: StockManagementProps) {
   });
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [threshold, setThreshold] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [threshold, setThreshold] = useState("");
+  const [error, setError] = useState("");
 
   const refreshStock = () => {
     const data = loadData();
     setItems(data.stock);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!name.trim()) {
-      setError('Veuillez entrer un nom de produit');
+      setError("Veuillez entrer un nom de produit");
       return;
     }
 
@@ -46,18 +46,23 @@ export function StockManagement({ onBack }: StockManagementProps) {
     const thresh = parseInt(threshold, 10);
 
     if (isNaN(qty) || isNaN(thresh) || qty < 0 || thresh < 0) {
-      setError('Veuillez entrer des nombres valides');
+      setError("Veuillez entrer des nombres valides");
       return;
     }
 
     const data = loadData();
+
+    const currentItem = editingId
+      ? data.stock.find((item: StockItem) => item.id === editingId)
+      : undefined;
 
     const newItem: StockItem = {
       id: editingId || generateItemId(),
       name: name.trim(),
       quantity: qty,
       threshold: thresh,
-      totalSold: editingId ? (data.stock.find(item => item.id === editingId)?.totalSold || 0) : 0,
+      unitPrice: currentItem?.unitPrice || 0,
+      totalSold: currentItem?.totalSold || 0,
     };
 
     if (editingId) {
@@ -70,9 +75,9 @@ export function StockManagement({ onBack }: StockManagementProps) {
     }
 
     if (saveData(data)) {
-      setName('');
-      setQuantity('');
-      setThreshold('');
+      setName("");
+      setQuantity("");
+      setThreshold("");
       setEditingId(null);
       setShowAddForm(false);
       refreshStock();
@@ -96,12 +101,12 @@ export function StockManagement({ onBack }: StockManagementProps) {
   };
 
   const handleCancel = () => {
-    setName('');
-    setQuantity('');
-    setThreshold('');
+    setName("");
+    setQuantity("");
+    setThreshold("");
     setEditingId(null);
     setShowAddForm(false);
-    setError('');
+    setError("");
   };
 
   const isLowStock = (item: StockItem) => item.quantity <= item.threshold;
@@ -138,7 +143,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
         {showAddForm && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
             <h2 className="font-semibold text-gray-900 text-lg">
-              {editingId ? 'Modifier le produit' : 'Ajouter un produit'}
+              {editingId ? "Modifier le produit" : "Ajouter un produit"}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -171,19 +176,21 @@ export function StockManagement({ onBack }: StockManagementProps) {
                 />
               </div>
 
-              {/* Threshold */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {fr.stock.threshold}
-                </label>
-                <input
-                  type="number"
-                  value={threshold}
-                  onChange={(e) => setThreshold(e.target.value)}
-                  placeholder="Quantité minimale"
-                  min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex gap-4">
+                {/* Threshold */}
+                <div className="w-full">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {fr.stock.threshold}
+                  </label>
+                  <input
+                    type="number"
+                    value={threshold}
+                    onChange={(e) => setThreshold(e.target.value)}
+                    placeholder="Min"
+                    min="0"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
 
               {/* Error Message */}
@@ -206,7 +213,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
                   type="submit"
                   className="flex-1 py-2 bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                 >
-                  {editingId ? 'Mettre à jour' : 'Ajouter'}
+                  {editingId ? "Mettre à jour" : "Ajouter"}
                 </button>
               </div>
             </form>
@@ -225,8 +232,8 @@ export function StockManagement({ onBack }: StockManagementProps) {
                 key={item.id}
                 className={`border-2 rounded-xl p-4 ${
                   isLowStock(item)
-                    ? 'border-amber-200 bg-amber-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-gray-200 bg-white hover:border-gray-300"
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -242,10 +249,22 @@ export function StockManagement({ onBack }: StockManagementProps) {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      Quantité:{' '}
-                      <span className="font-semibold">{item.quantity}</span>{' '}
+                      Quantité:{" "}
+                      <span className="font-semibold">{item.quantity}</span>{" "}
                       (Seuil: {item.threshold})
                     </p>
+                    <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                      <span className="bg-gray-100 px-2 py-1 rounded">
+                        💰{" "}
+                        {item.unitPrice
+                          ? item.unitPrice.toLocaleString("fr-FR")
+                          : 0}{" "}
+                        CFA
+                      </span>
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                        📈 Vendus: {item.totalSold || 0}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -259,7 +278,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm('Êtes-vous sûr ?')) {
+                      if (confirm("Êtes-vous sûr ?")) {
                         handleDelete(item.id);
                       }
                     }}
