@@ -35,6 +35,8 @@ export const fr = {
     stockButton: '📦 Stock',
     viewAll: 'Voir plus',
     lowStock: 'Stock faible',
+    topPerformers: 'Produits les plus vendus',
+    analyticsButton: '📊 Analyse',
   },
 
   // Entry
@@ -50,6 +52,17 @@ export const fr = {
     today: "Aujourd'hui",
     yesterday: 'Hier',
     entryAlreadyExists: 'Une entrée existe déjà pour cette date',
+    // New fields for Phase 2
+    addSale: 'Ajouter une vente',
+    addExpense: 'Ajouter une dépense',
+    selectProduct: 'Sélectionner un produit',
+    quantity: 'Quantité',
+    unitPrice: 'Prix unitaire',
+    total: 'Total',
+    expenseCategory: 'Catégorie de dépense',
+    addLineItem: '+ Ajouter',
+    removeLineItem: 'Supprimer',
+    selectCategory: 'Sélectionner une catégorie',
   },
 
   // Stock
@@ -63,6 +76,8 @@ export const fr = {
     noProducts: 'Aucun produit pour le moment',
     edit: 'Modifier',
     delete: 'Supprimer',
+    totalSold: 'Total vendu',
+    unitPrice: 'Prix unitaire (optionnel)',
   },
 
   // Navigation
@@ -70,6 +85,7 @@ export const fr = {
     dashboard: 'Dashboard',
     entries: 'Entrées',
     stock: 'Stock',
+    analytics: 'Analyse',
     settings: 'Données',
     loading: 'Chargement...',
   },
@@ -143,6 +159,36 @@ export const fr = {
   // Currency
   currency: {
     format: 'CFA',
+  },
+
+  // Expense Categories (Phase 2)
+  expenseCategories: {
+    Stock: 'Stock',
+    Transport: 'Transport',
+    Loyer: 'Loyer',
+    Salaire: 'Salaire',
+    Internet: 'Internet',
+    Autre: 'Autre',
+  },
+
+  // Analytics (Phase 2)
+  analytics: {
+    title: 'Analyse',
+    expenseBreakdown: 'Répartition des dépenses',
+    topProducts: 'Produits les plus vendus',
+    categoryName: 'Catégorie',
+    amount: 'Montant',
+    percentage: 'Pourcentage',
+    productName: 'Produit',
+    unitsSold: 'Unités vendues',
+    totalRevenue: 'Chiffre d\'affaires',
+    dateFilter: 'Filtrer par période',
+    today: 'Aujourd\'hui',
+    thisMonth: 'Ce mois',
+    allTime: 'Tout',
+    noData: 'Aucune donnée',
+    noExpenses: 'Aucune dépense pour cette période',
+    noProducts: 'Aucun produit vendu',
   },
 };
 
