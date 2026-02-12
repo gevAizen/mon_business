@@ -97,7 +97,7 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="h-dvh flex flex-col bg-white pb-18">
       {/* Header with greeting */}
       <div className="bg-linear-to-b from-blue-50 to-white px-6 pt-6 pb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -107,7 +107,7 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
       </div>
 
       {/* Main content */}
-      <div className="px-6 space-y-6">
+      <div className="px-6 space-y-6 flex-1 pb-4 overflow-auto">
         {/* Health Score - Large visual card */}
         <div
           className={`rounded-2xl p-6 ${getHealthScoreColor(
@@ -129,6 +129,13 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
                 </span>
               </div>
             </div>
+            <button
+              onClick={() => onNavigate("analytics")}
+              className="p-2 border-2 border-gray-200 bg-linear-to-b from-blue-50 to-green-50 hover:from-blue-100 hover:to-white rounded-lg transition-colors flex items-center justify-center"
+              aria-label={fr.nav.analytics}
+            >
+              <span className="text-xl leading-none">📊</span>
+            </button>
           </div>
           <p className="text-sm leading-relaxed">{healthScore.message}</p>
         </div>

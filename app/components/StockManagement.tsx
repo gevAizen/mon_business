@@ -112,7 +112,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
   const isLowStock = (item: StockItem) => item.quantity <= item.threshold;
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="h-dvh flex flex-col bg-white pb-18">
       {/* Header */}
       <div className="bg-linear-to-b from-blue-50 to-white px-6 pt-6 pb-8 flex items-center gap-4">
         {/* <button onClick={onBack} className="text-2xl">
@@ -127,7 +127,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
       </div>
 
       {/* Content */}
-      <div className="px-6 space-y-6">
+      <div className="flex-1 pb-4 overflow-auto px-6 space-y-6">
         {/* Add button */}
         <button
           onClick={() => {

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { loadData, saveData, clearData } from '@/lib/storage';
-import type { BusinessData } from '@/types';
-import { fr } from '@/lib/i18n';
+import { useState, useRef } from "react";
+import { loadData, saveData, clearData } from "@/lib/storage";
+import type { BusinessData } from "@/types";
+import { fr } from "@/lib/i18n";
 
 interface ExportImportProps {
   onBack: () => void;
@@ -13,11 +13,11 @@ interface ExportImportProps {
  * Validates imported data structure
  */
 function isValidImportData(data: unknown): data is BusinessData {
-  if (typeof data !== 'object' || data === null) return false;
+  if (typeof data !== "object" || data === null) return false;
   const d = data as Record<string, unknown>;
 
   return (
-    typeof d.settings === 'object' &&
+    typeof d.settings === "object" &&
     d.settings !== null &&
     Array.isArray(d.entries) &&
     Array.isArray(d.stock)
@@ -25,32 +25,32 @@ function isValidImportData(data: unknown): data is BusinessData {
 }
 
 export function ExportImport({ onBack }: ExportImportProps) {
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = () => {
     try {
       const data = loadData();
       const dataStr = JSON.stringify(data, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
+      const blob = new Blob([dataStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `mon_business_${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `mon_business_${new Date().toISOString().split("T")[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      setMessageType('success');
+      setMessageType("success");
       setMessage(fr.settings.exportSuccess);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      console.error('Export failed:', error);
-      setMessageType('error');
+      console.error("Export failed:", error);
+      setMessageType("error");
       setMessage(fr.settings.exportError);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -63,10 +63,10 @@ export function ExportImport({ onBack }: ExportImportProps) {
     if (!confirmed) return;
 
     if (clearData()) {
-      setMessageType('success');
+      setMessageType("success");
       setMessage(fr.settings.clearDataSuccess);
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = "/";
       }, 2000);
     }
   };
@@ -91,36 +91,36 @@ export function ExportImport({ onBack }: ExportImportProps) {
         if (!confirmed) return;
 
         if (saveData(importedData)) {
-          setMessageType('success');
+          setMessageType("success");
           setMessage(fr.settings.importSuccess);
-          setTimeout(() => setMessage(''), 3000);
+          setTimeout(() => setMessage(""), 3000);
         } else {
           throw new Error(fr.settings.importError);
         }
       } catch (error) {
-        console.error('Import failed:', error);
-        setMessageType('error');
+        console.error("Import failed:", error);
+        setMessageType("error");
         setMessage(
           `${fr.common.error}: ${error instanceof Error ? error.message : fr.settings.importError}`,
         );
-        setTimeout(() => setMessage(''), 5000);
+        setTimeout(() => setMessage(""), 5000);
       }
     };
 
     reader.onerror = () => {
-      setMessageType('error');
+      setMessageType("error");
       setMessage(fr.settings.fileReadError);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(""), 3000);
     };
 
     reader.readAsText(file);
 
     // Reset input
-    event.target.value = '';
+    event.target.value = "";
   };
 
   return (
-    <div className="h-[calc(100dvh-90px)] flex flex-col bg-white">
+    <div className="h-dvh flex flex-col bg-white pb-18">
       {/* Header */}
       <div className="bg-linear-to-b from-blue-50 to-white px-6 pt-6 pb-8 flex items-center gap-4">
         {/* <button onClick={onBack} className="text-2xl">
@@ -135,17 +135,14 @@ export function ExportImport({ onBack }: ExportImportProps) {
       </div>
 
       {/* Content */}
-      <div
-        className="px-6 space-y-6 pb-3 overflow-auto"
-        style={{ overflow: 'auto' }}
-      >
+      <div className="flex-1 pb-4 overflow-auto px-6 space-y-6">
         {/* Message */}
         {message && (
           <div
             className={`p-4 rounded-lg ${
-              messageType === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
+              messageType === "success"
+                ? "bg-green-50 border border-green-200 text-green-700"
+                : "bg-red-50 border border-red-200 text-red-700"
             }`}
           >
             {message}

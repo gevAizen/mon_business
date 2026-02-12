@@ -21,37 +21,31 @@ export function EntriesList({ onBack }: EntriesListProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
-  const [entries, setEntries] = useState<DailyEntry[]>([]);
-  const [stock, setStock] = useState<StockItem[]>([]);
 
-  // Load stock to resolve product names
-  useEffect(() => {
-    const data = loadData();
-    setStock(data.stock);
-  }, [showAddEntry]); // Reload when add modal closes to get fresh stock
+  // Load initial data once via lazy initializers
+  const [stock, setStock] = useState<StockItem[]>(() => {
+    return loadData().stock;
+  });
 
-  const refreshEntries = useCallback(() => {
-    setEntries(getEntriesForDate(selectedDate));
-    // Also refresh stock as it might have changed
+  // Get entries directly from the data source, not from state
+  const entries = getEntriesForDate(selectedDate);
+
+  const refreshStock = useCallback(() => {
     setStock(loadData().stock);
-  }, [selectedDate]);
-
-  useEffect(() => {
-    refreshEntries();
-  }, [refreshEntries]);
+  }, []);
 
   const handleAddEntry = (entry: DailyEntry) => {
     if (addOrUpdateEntry(entry)) {
       setShowAddEntry(false);
       setEditingEntry(undefined);
-      refreshEntries();
+      refreshStock(); // Stock might have changed if it's a sale
     }
   };
 
   const handleDelete = (entryId: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer cette entrée ?")) {
       if (deleteEntry(entryId)) {
-        refreshEntries();
+        refreshStock();
       }
     }
   };
@@ -61,7 +55,7 @@ export function EntriesList({ onBack }: EntriesListProps) {
     setShowAddEntry(true);
   };
 
-  // Calculate totals
+  // Calculate totals - derived data, no state needed
   const dayTotal = entries.reduce(
     (acc, entry) => {
       if (entry.type === "SALE") {
@@ -86,7 +80,8 @@ export function EntriesList({ onBack }: EntriesListProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="h-dvh flex flex-col bg-white pb-18">
+      {/* bg-gray-100 */}
       {/* Header */}
       <div className="bg-linear-to-b from-blue-50 to-white px-6 pt-6 pb-8 flex items-center gap-4">
         {/* <button onClick={onBack} className="text-2xl text-gray-800">
@@ -99,7 +94,7 @@ export function EntriesList({ onBack }: EntriesListProps) {
       </div>
 
       {/* Content */}
-      <div className="px-6 space-y-6">
+      <div className="flex-1 pb-4 overflow-auto px-6 space-y-6">
         {/* Date Selector */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">

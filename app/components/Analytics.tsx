@@ -3,6 +3,7 @@ import { fr } from "@/lib/i18n";
 import { getTopRevenueProducts } from "@/lib/stock";
 import { loadData } from "@/lib/storage";
 import type { DailyEntry, StockItem } from "@/types";
+import Image from "next/image";
 import { useState } from "react";
 
 interface AnalyticsProps {
@@ -74,15 +75,20 @@ export function Analytics({ onBack }: AnalyticsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="h-dvh flex flex-col bg-white pb-18">
       {/* Header */}
       <div className="bg-white px-6 pt-6 pb-4 border-b border-gray-100 sticky top-0 z-10">
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center mb-4">
           <button
             onClick={onBack}
             className="p-2 -ml-2 text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <span className="text-xl">←</span>
+            <Image
+              src="/img/back_arrow.png"
+              width={30}
+              height={30}
+              alt="Go back"
+            />
           </button>
           <h1 className="text-xl font-bold text-gray-900">
             {fr.analytics.title}
@@ -110,7 +116,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="flex-1 pb-4 overflow-auto px-6 space-y-6">
         {/* Expense Breakdown Section */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-4">

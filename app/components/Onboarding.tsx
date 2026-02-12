@@ -1,25 +1,26 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { BusinessSettings } from '@/types';
-import { saveData, loadData } from '@/lib/storage';
-import { fr } from '@/lib/i18n';
+import { useState } from "react";
+import type { BusinessSettings } from "@/types";
+import { saveData, loadData } from "@/lib/storage";
+import { fr } from "@/lib/i18n";
+import Image from "next/image";
 
 interface OnboardingProps {
   onComplete: (settings: BusinessSettings) => void;
 }
 
 export function Onboarding({ onComplete }: OnboardingProps) {
-  const [businessName, setBusinessName] = useState('');
-  const [dailyTarget, setDailyTarget] = useState('');
-  const [error, setError] = useState('');
+  const [businessName, setBusinessName] = useState("");
+  const [dailyTarget, setDailyTarget] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!businessName.trim()) {
-      setError('Veuillez entrer le nom de votre business');
+      setError("Veuillez entrer le nom de votre business");
       return;
     }
 
@@ -44,7 +45,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       <div className="w-full max-w-md">
         {/* Hero Section - Start with Why */}
         <div className="mb-8 text-center">
-          <div className="text-5xl mb-4">📊</div>
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/img/icon.png"
+              alt="MonBusiness icon"
+              width={60}
+              height={60}
+            />
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {fr.onboarding.title}
           </h1>
