@@ -1,22 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { BusinessSettings } from '@/types';
-import { loadData } from '@/lib/storage';
-import { fr } from '@/lib/i18n';
-import { Onboarding } from './components/Onboarding';
-import { Dashboard } from './components/Dashboard';
-import { StockManagement } from './components/StockManagement';
-import { EntriesList } from './components/EntriesList';
-import { ExportImport } from './components/ExportImport';
-import { InstallBanner } from './components/InstallBanner';
+import { useState } from "react";
+import type { BusinessSettings } from "@/types";
+import { loadData } from "@/lib/storage";
+import { fr } from "@/lib/i18n";
+import { Onboarding } from "./components/Onboarding";
+import { Dashboard } from "./components/Dashboard";
+import { StockManagement } from "./components/StockManagement";
+import { EntriesList } from "./components/EntriesList";
+import { ExportImport } from "./components/ExportImport";
+import { InstallBanner } from "./components/InstallBanner";
+import { Analytics } from "./components/Analytics";
 
 export type Page =
-  | 'dashboard'
-  | 'stock'
-  | 'entries'
-  | 'settings'
-  | 'onboarding';
+  | "dashboard"
+  | "stock"
+  | "entries"
+  | "settings"
+  | "onboarding"
+  | "analytics";
 
 export default function Home() {
   // ✅ Compute initial state synchronously
@@ -25,17 +27,17 @@ export default function Home() {
 
     if (!data.settings.name) {
       return {
-        page: 'onboarding' as Page,
+        page: "onboarding" as Page,
         settings: null,
       };
     }
 
     const params = new URLSearchParams(window.location.search);
-    const action = params.get('action');
+    const action = params.get("action");
 
-    let page: Page = 'dashboard';
-    if (action === 'stock') page = 'stock';
-    if (action === 'add-entry') page = 'dashboard';
+    let page: Page = "dashboard";
+    if (action === "stock") page = "stock";
+    if (action === "add-entry") page = "dashboard";
 
     return {
       page,
@@ -50,7 +52,7 @@ export default function Home() {
 
   const handleOnboardingComplete = (newSettings: BusinessSettings) => {
     setSettings(newSettings);
-    setCurrentPage('dashboard');
+    setCurrentPage("dashboard");
   };
 
   // ✅ Strongly typed (no cast needed)
@@ -59,7 +61,7 @@ export default function Home() {
   };
 
   // Onboarding screen
-  if (currentPage === 'onboarding') {
+  if (currentPage === "onboarding") {
     return (
       <>
         <Onboarding onComplete={handleOnboardingComplete} />
@@ -76,11 +78,11 @@ export default function Home() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 safe-area-inset-bottom">
         <div className="flex max-w-md mx-auto">
           <button
-            onClick={() => handleNavigate('dashboard')}
+            onClick={() => handleNavigate("dashboard")}
             className={`flex-1 py-3 px-4 flex flex-col items-center gap-1 transition-colors ${
-              currentPage === 'dashboard'
-                ? 'text-[#60b8c0] border-t-2 border-[#60b8c0]'
-                : 'text-gray-600 border-t-2 border-transparent hover:text-gray-900'
+              currentPage === "dashboard"
+                ? "text-[#60b8c0] border-t-2 border-[#60b8c0]"
+                : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
             <span className="text-xl">📊</span>
@@ -88,11 +90,11 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => handleNavigate('entries')}
+            onClick={() => handleNavigate("entries")}
             className={`flex-1 py-3 px-4 flex flex-col items-center gap-1 transition-colors ${
-              currentPage === 'entries'
-                ? 'text-[#60b8c0] border-t-2 border-[#60b8c0]'
-                : 'text-gray-600 border-t-2 border-transparent hover:text-gray-900'
+              currentPage === "entries"
+                ? "text-[#60b8c0] border-t-2 border-[#60b8c0]"
+                : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
             <span className="text-xl">📋</span>
@@ -100,11 +102,11 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => handleNavigate('stock')}
+            onClick={() => handleNavigate("stock")}
             className={`flex-1 py-3 px-4 flex flex-col items-center gap-1 transition-colors ${
-              currentPage === 'stock'
-                ? 'text-[#60b8c0] border-t-2 border-[#60b8c0]'
-                : 'text-gray-600 border-t-2 border-transparent hover:text-gray-900'
+              currentPage === "stock"
+                ? "text-[#60b8c0] border-t-2 border-[#60b8c0]"
+                : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
             <span className="text-xl">📦</span>
@@ -112,11 +114,11 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => handleNavigate('settings')}
+            onClick={() => handleNavigate("settings")}
             className={`flex-1 py-3 px-4 flex flex-col items-center gap-1 transition-colors ${
-              currentPage === 'settings'
-                ? 'text-[#60b8c0] border-t-2 border-[#60b8c0]'
-                : 'text-gray-600 border-t-2 border-transparent hover:text-gray-900'
+              currentPage === "settings"
+                ? "text-[#60b8c0] border-t-2 border-[#60b8c0]"
+                : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
             <span className="text-xl">⚙️</span>
@@ -125,17 +127,20 @@ export default function Home() {
         </div>
       </nav>
 
-      {currentPage === 'dashboard' && (
+      {currentPage === "dashboard" && (
         <Dashboard settings={settings} onNavigate={handleNavigate} />
       )}
-      {currentPage === 'stock' && (
-        <StockManagement onBack={() => handleNavigate('dashboard')} />
+      {currentPage === "stock" && (
+        <StockManagement onBack={() => handleNavigate("dashboard")} />
       )}
-      {currentPage === 'entries' && (
-        <EntriesList onBack={() => handleNavigate('dashboard')} />
+      {currentPage === "entries" && (
+        <EntriesList onBack={() => handleNavigate("dashboard")} />
       )}
-      {currentPage === 'settings' && (
-        <ExportImport onBack={() => handleNavigate('dashboard')} />
+      {currentPage === "settings" && (
+        <ExportImport onBack={() => handleNavigate("dashboard")} />
+      )}
+      {currentPage === "analytics" && (
+        <Analytics onBack={() => handleNavigate("dashboard")} />
       )}
 
       <InstallBanner />

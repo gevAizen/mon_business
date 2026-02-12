@@ -81,17 +81,17 @@ Current system lacks inventory tracking depth and expense insights:
 
 ### Phase 6: StockManagement Updates
 
-- [ ] Update `StockManagement.tsx`:
-  - [ ] Display `totalSold` field (read-only, for reference)
-  - [ ] Show low-stock alert on each item (if quantity ≤ threshold)
-  - [ ] Optional: add unit price field (for future cost tracking)
+- [x] Update `StockManagement.tsx`:
+  - [x] Display `totalSold` field (read-only, for reference)
+  - [x] Show low-stock alert on each item (if quantity ≤ threshold)
+  - [x] Optional: add unit price field (for future cost tracking)
 
 ### Phase 7: Dashboard Enhancements
 
-- [ ] Update `Dashboard.tsx`:
-  - [ ] **Low-Stock Alert Section**: Show 2-3 top low-stock items
-  - [ ] **Top Performers Snippet**: Show 2-3 best-selling products by totalSold
-  - [ ] Link to Analytics page for detailed view
+- [x] Update `Dashboard.tsx`:
+  - [x] **Low-Stock Alert Section**: Show 2-3 top low-stock items
+  - [x] **Top Performers Snippet**: Show 2-3 best-selling products by totalSold
+  - [x] Link to Analytics page for detailed view
 
 ### Phase 8: New Analytics Page
 
