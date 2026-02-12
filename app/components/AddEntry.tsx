@@ -1,13 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import type { DailyEntry } from '@/types';
 import { fr } from '@/lib/i18n';
+import type { DailyEntry } from '@/types';
+import { useState } from 'react';
 
 interface AddEntryProps {
   existingEntry?: DailyEntry;
   onSave: (entry: DailyEntry) => void;
   onCancel: () => void;
+}
+
+/**
+ * Generate a unique ID for an entry
+ * Users can add multiple entries per day, each needs a unique ID
+ */
+function generateEntryId(): string {
+  return `entry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
 export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
@@ -26,7 +34,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
 
   const [error, setError] = useState('');
 
-  //  Compute profit directly (no useEffect, no state)
+  //  Derived values (no state, no effect)
   const salesNum = parseFloat(sales) || 0;
   const expensesNum = parseFloat(expenses) || 0;
   const profit = Math.max(salesNum - expensesNum, 0);
@@ -51,9 +59,11 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
     }
 
     onSave({
+      id: existingEntry?.id || generateEntryId(),
       date,
       sales: salesNum,
       expenses: expensesNum,
+      timestamp: existingEntry?.timestamp || Date.now(),
     });
   };
 
@@ -76,10 +86,14 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Date */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="date"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               {fr.entry.date}
             </label>
             <input
+              id="date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -89,11 +103,15 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
 
           {/* Sales */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="sales"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               {fr.entry.sales}
             </label>
             <div className="relative">
               <input
+                id="sales"
                 type="number"
                 value={sales}
                 onChange={(e) => setSales(e.target.value)}
@@ -110,11 +128,15 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
 
           {/* Expenses */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label
+              htmlFor="expenses"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               {fr.entry.expenses}
             </label>
             <div className="relative">
               <input
+                id="expenses"
                 type="number"
                 value={expenses}
                 onChange={(e) => setExpenses(e.target.value)}

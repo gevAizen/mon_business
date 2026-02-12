@@ -28,13 +28,15 @@ function isValidDailyEntry(entry: unknown): entry is DailyEntry {
   if (typeof entry !== "object" || entry === null) return false;
   const e = entry as Record<string, unknown>;
   return (
+    typeof e.id === "string" &&
     typeof e.date === "string" &&
     typeof e.sales === "number" &&
     typeof e.expenses === "number" &&
     !isNaN(e.sales) &&
     !isNaN(e.expenses) &&
     e.sales >= 0 &&
-    e.expenses >= 0
+    e.expenses >= 0 &&
+    (e.timestamp === undefined || (typeof e.timestamp === "number" && e.timestamp >= 0))
   );
 }
 
