@@ -105,9 +105,7 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
         </h1>
         {entries.length === 0 ? (
           <div className="text-gray-600">
-            <p className="text-sm">
-              Commençons à suivre votre business ensemble.
-            </p>
+            <p>Commençons à suivre votre business ensemble.</p>
 
             <p className="text-sm">
               1️⃣ Ajoutez d’abord vos produits (ex. : pagnes, sacs, boissons)
