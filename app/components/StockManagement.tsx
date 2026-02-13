@@ -280,10 +280,7 @@ const HeaderComponent: React.FC = () => {
   return (
     <div className="flex flex-col gap-2">
       <h1 className="text-2xl font-bold text-gray-900">{fr.stock.inventory}</h1>
-      <p className="text-gray-600 text-sm">
-        Ajoutez ici les produits que vous vendez. Vous pouvez commencer avec 0
-        quantité!
-      </p>
+      <p className="text-gray-600 text-sm">{fr.stock.subtitle}</p>
     </div>
   );
 };

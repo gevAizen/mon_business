@@ -215,7 +215,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
             {productPerformance.products.map((product) => (
               <div
                 key={product.productId}
-                className="py-4 border-b border-gray-300"
+                className="py-4 border-t border-gray-300"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
@@ -657,14 +657,20 @@ interface HeaderProps {
 }
 const HeaderComponent: React.FC<HeaderProps> = ({ onBack }) => {
   return (
-    <div className="flex items-center mb-4">
+    <div className="flex items-start">
       <button
         onClick={onBack}
         className="p-2 -ml-2 text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
       >
         <Image src="/img/back_arrow.png" width={30} height={30} alt="Go back" />
       </button>
-      <h1 className="text-xl font-bold text-gray-900">{fr.analytics.title}</h1>
+      <div>
+        <h1 className="text-xl font-bold text-gray-900">
+          {fr.analytics.title}
+        </h1>
+
+        <p className="text-gray-600 text-sm">{fr.analytics.subtitle}</p>
+      </div>
     </div>
   );
 };

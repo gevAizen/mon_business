@@ -124,7 +124,9 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
                 className="p-2 border-2 border-gray-200 bg-linear-to-b from-blue-50 to-green-50 hover:from-blue-100 hover:to-white rounded-lg transition-colors flex items-center justify-center"
                 aria-label={fr.nav.analytics}
               >
-                <span className="text-base leading-none">📊 Analyse</span>
+                <span className="text-base leading-none">
+                  📊 Voir mon bilan
+                </span>
               </button>
             </div>
           )}

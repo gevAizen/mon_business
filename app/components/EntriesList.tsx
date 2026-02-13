@@ -259,8 +259,12 @@ export function EntriesList({ onBack }: EntriesListProps) {
 const HeaderComponent: React.FC = () => {
   return (
     <div className="flex flex-col gap-2">
-      <h1 className="text-2xl font-bold text-gray-900">Entrées</h1>
-      <p className="text-gray-600 text-sm">Gérez vos transactions</p>
+      <h1 className="text-2xl font-bold text-gray-900">
+        Mes ventes et dépenses
+      </h1>
+      <p className="text-gray-600 text-sm">
+        Enregistrez ici toutes vos transactions
+      </p>
     </div>
   );
 };

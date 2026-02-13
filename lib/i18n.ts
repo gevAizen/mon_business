@@ -72,7 +72,8 @@ export const fr = {
 
   // Stock
   stock: {
-    inventory: "Inventaire",
+    inventory: "Mes produits en stock",
+    subtitle: "Retrouvez ici tous les produits que vous vendez.",
     addProduct: "Ajouter un produit",
     productName: "Nom du produit",
     quantity: "Quantité",
@@ -112,8 +113,9 @@ export const fr = {
     importData: "Importer mes données",
     clearAll: "Tout effacer",
     confirmClear: "Êtes-vous sûr ? Toutes vos données seront supprimées.",
-    dataTitle: "Données",
-    dataSubtitle: "Sauvegardez et restaurez vos données",
+    dataTitle: "Mes données en sécurité",
+    dataSubtitle:
+      "Sauvegarder vos données ou restaurer une ancienne sauvegarde",
     exportTitle: "💾 Télécharger mes données",
     exportDescription:
       "Créez une sauvegarde de toutes vos données de business. Vous pourrez réimporter ce fichier ultérieurement.",
@@ -179,7 +181,8 @@ export const fr = {
 
   // Analytics (Phase 2)
   analytics: {
-    title: "Analyse",
+    title: "Mon tableau de bord",
+    subtitle: "Découvrez ici l’état de santé de votre business.",
     expenseBreakdown: "Répartition des dépenses",
     topProducts: "Produits les plus vendus",
     categoryName: "Catégorie",
