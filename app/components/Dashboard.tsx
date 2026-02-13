@@ -110,8 +110,10 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
             </p>
 
             <p className="text-sm">
-              Ajoutez vos premières entrées pour voir votre tableau de bord
-              s’animer !
+              1️⃣ Ajoutez d’abord vos produits (ex. : pagnes, sacs, boissons)
+              dans l’onglet <strong>Stock</strong>. <br />
+              2️⃣ Ensuite, enregistrez vos premières ventes ou dépenses pour voir
+              votre tableau de bord s’animer !
             </p>
           </div>
         ) : (
