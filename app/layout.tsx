@@ -1,36 +1,37 @@
-import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
 
 const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: 'MonBusiness',
-  description: 'Track your business profit and inventory with ease',
-  manifest: '/manifest.json',
+  title: "MonBusiness",
+  description:
+    "Suivez vos profits, dépenses et stocks en temps réel avec MonBusiness Togo. L'application 100% adaptée aux entrepreneurs et petits commerçants.",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'MonBusiness',
+    statusBarStyle: "black-translucent",
+    title: "MonBusiness",
   },
   icons: {
-    icon: '/favicon.ico',
-    apple: '/img/icon.png',
+    icon: "/favicon.ico",
+    apple: "/img/icon.png",
   },
 };
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1.0,
-  viewportFit: 'cover',
+  viewportFit: "cover",
   userScalable: false,
 };
 
