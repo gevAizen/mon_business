@@ -11,8 +11,8 @@
  * - Discipline (are you tracking consistently?)
  */
 
-import type { HealthScoreResult } from '@/types';
-import type { DailyEntry } from '@/types';
+import type { HealthScoreResult } from "@/types";
+import type { DailyEntry } from "@/types";
 import {
   getTodayProfit,
   getMonthlyProfit,
@@ -20,7 +20,7 @@ import {
   getMissingEntryCount,
   getLast7DaysTrend,
   getWeeklyGrowth,
-} from './profit';
+} from "./profit";
 
 export function calculateHealthScore(
   entries: DailyEntry[],
@@ -116,53 +116,59 @@ export function calculateHealthScore(
 }
 
 /**
- * Generate contextual, encouraging message based on business health
- * "Start with Why" principle: Help them understand the WHY behind the score
+ * Génère un message contextuel et encourageant basé sur la santé du business.
+ * Aide l'utilisateur à comprendre le "POURQUOI" derrière le score et propose des actions concrètes.
  */
 function generateHealthMessage(
   score: number,
-  trend: number,
-  expenseRatio: number,
-  missingEntries: number,
+  trend: number, // 1: amélioration, 0: stable, -1: détérioration
+  expenseRatio: number, // Ratio dépenses/revenus (ex: 0.8 = 80% des revenus en dépenses)
+  missingEntries: number, // Nombre d'entrées manquantes dans le suivi
 ): string {
-  // Excellent (8.5-10)
+  // Excellente santé (8.5-10)
   if (score >= 8.5) {
     if (trend === 1) {
-      return 'Votre business est en excellente santé et en croissance ! Continuez comme ça.';
+      return "Excellente santé ! Votre business est en pleine croissance. 🎉\nConseil : Continuez à suivre vos performances pour maintenir cette dynamique.";
     }
-    return 'Votre business est en excellente santé. Maintenez ce rythme.';
+    return "Votre business est en excellente santé.\nConseil : Maintenez ce rythme et célébrez vos progrès !";
   }
 
-  // Good (6.5-8.4)
+  // Bonne santé (6.5-8.4)
   if (score >= 6.5) {
     if (expenseRatio > 0.75) {
-      return 'Bien ! Contrôlez vos dépenses pour améliorer les marges.';
+      return "Bonne santé globale, mais vos marges pourraient être optimisées.\nEssayez de réduire vos dépenses non essentielles ce mois-ci.";
     }
-    return 'Bonne trajectoire. Restez discipliné dans votre suivi.';
+    if (trend === 0) {
+      return "Votre business est stable. Restez discipliné dans votre suivi pour préparer la croissance.";
+    }
+    return "Bonne trajectoire ! Un suivi régulier vous aidera à atteindre vos objectifs.";
   }
 
-  // Warning (4.5-6.4)
+  // À surveiller (4.5-6.4)
   if (score >= 4.5) {
     if (missingEntries > 2) {
-      return 'À surveiller. Soyez rigoureux dans votre suivi quotidien.';
+      return "Votre business a besoin d’un suivi plus rigoureux.\nPrenez 5 minutes par jour pour mettre à jour vos entrées.";
     }
     if (expenseRatio > 0.8) {
-      return 'Attention : vos dépenses sont trop élevées. Réduisez les coûts.';
+      return "Vos dépenses sont élevées ce mois-ci.\nIdentifiez 1 ou 2 postes à réduire pour améliorer vos marges.";
     }
     if (trend === -1) {
-      return 'La tendance est négative. Analysez et ajustez votre stratégie.';
+      return "La tendance est à la baisse. Analysez vos dépenses et revenus pour inverser la situation.";
     }
-    return 'À surveiller. Améliorez votre rentabilité.';
+    return "À surveiller : améliorez votre rentabilité en réduisant les coûts superflus.";
   }
 
-  // Critical (0-4.4)
+  // Critique (0-4.4)
   if (expenseRatio > 0.9) {
-    return 'Critique : dépenses > revenus. Action immédiate requise.';
+    return "Situation urgente : vos dépenses dépassent vos revenus.\nCommencez par lister vos 3 plus grosses dépenses et réduisez-les dès aujourd’hui.";
   }
   if (trend === -1 && missingEntries > 3) {
-    return 'Critique : suivi irrégulier et tendance négative. Reprenez le contrôle.';
+    return "Votre business a besoin d’une attention immédiate : suivi irrégulier et tendance négative.\nUtilisez notre outil d’analyse pour identifier les solutions ou contactez un conseiller.";
   }
-  return 'Situation critique. Ré-évaluez votre stratégie commerciale.';
+  if (missingEntries > 5) {
+    return "Situation critique : votre suivi est incomplet.\nMettez à jour vos données pour prendre les bonnes décisions.";
+  }
+  return "Votre business traverse une période difficile.\nRéévaluez votre stratégie ou demandez de l’aide pour rebondir.";
 }
 
 /**
@@ -170,10 +176,10 @@ function generateHealthMessage(
  * "100 Things Designer Needs to Know": Color conveys meaning instantly
  */
 export function getHealthScoreColor(score: number): string {
-  if (score >= 8) return 'text-green-600 bg-green-50';
-  if (score >= 6) return 'text-[#60b8c0] bg-blue-50';
-  if (score >= 4) return 'text-yellow-600 bg-yellow-50';
-  return 'text-red-600 bg-red-50';
+  if (score >= 8) return "text-green-600 bg-green-50";
+  if (score >= 6) return "text-[#60b8c0] bg-blue-50";
+  if (score >= 4) return "text-yellow-600 bg-yellow-50";
+  return "text-red-600 bg-red-50";
 }
 
 /**
@@ -181,8 +187,8 @@ export function getHealthScoreColor(score: number): string {
  * "100 Things Designer Needs to Know": Icons/emojis aid recognition and memory
  */
 export function getHealthScoreEmoji(score: number): string {
-  if (score >= 8.5) return '🚀';
-  if (score >= 6.5) return '📈';
-  if (score >= 4.5) return '⚠️';
-  return '🆘';
+  if (score >= 8.5) return "🚀";
+  if (score >= 6.5) return "📈";
+  if (score >= 4.5) return "⚠️";
+  return "🆘";
 }

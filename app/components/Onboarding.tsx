@@ -49,14 +49,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             <Image
               src="/img/icon.png"
               alt="MonBusiness icon"
-              width={60}
-              height={60}
+              width={100}
+              height={100}
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
             {fr.onboarding.title}
           </h1>
-          <p className="text-gray-600 text-lg leading-relaxed">
+          <p className="text-gray-600 text-base leading-relaxed">
             {fr.onboarding.description}
           </p>
         </div>
@@ -119,17 +119,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
         {/* Trust/Why Section - Build confidence */}
         <div className="space-y-3 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <span className="text-lg text-green-500">✓</span>
-            <span>Aucune donnée ne quitte votre téléphone</span>
+            <span>{fr.onboarding.trust.security}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-lg text-green-500">✓</span>
-            <span>Fonctionne hors ligne</span>
+            <span>{fr.onboarding.trust.offline}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-lg text-green-500">✓</span>
-            <span>Vos données, votre privacy</span>
+            <span>{fr.onboarding.trust.privacy}</span>
           </div>
         </div>
       </div>

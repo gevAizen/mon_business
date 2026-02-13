@@ -165,7 +165,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               }}
               className={`flex-1 px-4 py-3 font-semibold transition-colors ${
                 entryType === "SALE"
-                  ? "border-b-2 border-blue-500 text-blue-600"
+                  ? "border-b-2 border-[#60b8c0] text-[#60b8c0]"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
@@ -179,7 +179,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
               }}
               className={`flex-1 px-4 py-3 font-semibold transition-colors ${
                 entryType === "EXPENSE"
-                  ? "border-b-2 border-blue-500 text-blue-600"
+                  ? "border-b-2 border-[#60b8c0] text-[#60b8c0]"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >

@@ -62,7 +62,7 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
-  // ✅ Derived values (no state, no effects)
+  //  Derived values (no state, no effects)
   const todayProfit = getTodayProfit(entries);
   const monthlyProfit = getMonthlyProfit(entries);
   const healthScore = calculateHealthScore(entries, settings.dailyTarget);
@@ -97,13 +97,26 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
   };
 
   return (
-    <div className="h-dvh flex flex-col bg-white pb-18">
+    <div className="h-dvh flex flex-col bg-linear-to-b from-blue-50 to-white pb-18">
       {/* Header with greeting */}
-      <div className="bg-linear-to-b from-blue-50 to-white px-6 pt-6 pb-8">
+      <div className=" px-6 pt-6 pb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">
-          {fr.dashboard.greeting}, {settings.name}
+          {fr.dashboard.greeting}, {settings.name}! 👋
         </h1>
-        <p className="text-gray-600 text-sm">{fr.dashboard.subtitle}</p>
+        {entries.length === 0 ? (
+          <div className="text-gray-600">
+            <p className="text-sm">
+              Commençons à suivre votre business ensemble.
+            </p>
+
+            <p className="text-sm">
+              Ajoutez vos premières entrées pour voir votre tableau de bord
+              s’animer !
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-600 text-sm">{fr.dashboard.subtitle}</p>
+        )}
       </div>
 
       {/* Main content */}
@@ -114,85 +127,119 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
             healthScore.score,
           )} border border-current border-opacity-20`}
         >
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm font-semibold opacity-75">
-                {fr.dashboard.healthScore}
-              </p>
-              <div className="text-5xl font-bold mt-2 flex items-center gap-2">
+          <div className="flex flex-col items-start">
+            <p className="text-base font-semibold opacity-75">
+              {entries.length > 0
+                ? fr.dashboard.healthScore
+                : "Prêt à démarrer ?"}
+            </p>
+            {entries.length > 0 && (
+              <div className="w-full flex items-center gap-6 text-5xl font-bold mt-2">
                 <div className="flex items-end">
                   {(healthScore.score * 10).toFixed(0)}
                   <span className="text-base">/100</span>
                 </div>
-                <span className="text-3xl">
-                  {getHealthScoreEmoji(healthScore.score)}
-                </span>
+                <button
+                  onClick={() => onNavigate("analytics")}
+                  className="p-2 border-2 border-gray-200 bg-linear-to-b from-blue-50 to-green-50 hover:from-blue-100 hover:to-white rounded-lg transition-colors flex items-center justify-center"
+                  aria-label={fr.nav.analytics}
+                >
+                  <span className="text-2xl leading-none">
+                    {getHealthScoreEmoji(healthScore.score)}
+                  </span>
+                </button>
               </div>
-            </div>
-            <button
-              onClick={() => onNavigate("analytics")}
-              className="p-2 border-2 border-gray-200 bg-linear-to-b from-blue-50 to-green-50 hover:from-blue-100 hover:to-white rounded-lg transition-colors flex items-center justify-center"
-              aria-label={fr.nav.analytics}
-            >
-              <span className="text-xl leading-none">📊</span>
-            </button>
+            )}
+            <p className="text-sm leading-relaxed">
+              {entries.length > 0
+                ? healthScore.message
+                : "Votre score de santé apparaîtra ici une fois que vous aurez ajouté vos premières ventes ou dépenses."}
+            </p>
           </div>
-          <p className="text-sm leading-relaxed">{healthScore.message}</p>
         </div>
 
         {/* Today's profit and Monthly profit - Side by side */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Today */}
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-            <p className="text-xs font-semibold text-gray-600 mb-2">
-              {fr.dashboard.todayProfit}
-            </p>
-            <p
-              className={`text-2xl font-bold ${
-                todayProfit > 0
-                  ? "text-green-600"
-                  : todayProfit < 0
-                    ? "text-red-600"
-                    : "text-gray-600"
-              }`}
-            >
-              {todayProfit.toLocaleString("fr-FR")}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">CFA</p>
-          </div>
 
-          {/* This Month */}
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-            <p className="text-xs font-semibold text-gray-600 mb-2">
-              {fr.dashboard.monthlyProfit}
-            </p>
-            <p
-              className={`text-2xl font-bold ${
-                monthlyProfit > 0
-                  ? "text-green-600"
-                  : monthlyProfit < 0
-                    ? "text-red-600"
-                    : "text-gray-600"
-              }`}
-            >
-              {monthlyProfit.toLocaleString("fr-FR")}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">CFA</p>
-          </div>
-        </div>
+        {entries.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Today */}
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <p className="text-xs font-semibold text-gray-600 mb-2">
+                  {fr.dashboard.todayProfit}
+                </p>
+                <p
+                  className={`text-2xl font-bold ${
+                    todayProfit > 0
+                      ? "text-green-600"
+                      : todayProfit < 0
+                        ? "text-red-600"
+                        : "text-gray-600"
+                  }`}
+                >
+                  {todayProfit.toLocaleString("fr-FR")}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">CFA</p>
+              </div>
 
-        {/* Trend indicator */}
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-gray-600">
-              {fr.dashboard.trendLabel}
-            </p>
-            <p className="text-lg font-semibold text-gray-900 mt-1">
-              {getTrendText()}
-            </p>
-          </div>
-          <span className="text-4xl">{getTrendEmoji()}</span>
-        </div>
+              {/* This Month */}
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <p className="text-xs font-semibold text-gray-600 mb-2">
+                  {fr.dashboard.monthlyProfit}
+                </p>
+                <p
+                  className={`text-2xl font-bold ${
+                    monthlyProfit > 0
+                      ? "text-green-600"
+                      : monthlyProfit < 0
+                        ? "text-red-600"
+                        : "text-gray-600"
+                  }`}
+                >
+                  {monthlyProfit.toLocaleString("fr-FR")}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">CFA</p>
+              </div>
+            </div>
+            {/* Trend indicator */}
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-600">
+                  {fr.dashboard.trendLabel}
+                </p>
+                <p className="text-lg font-semibold text-gray-900 mt-1">
+                  {getTrendText()}
+                </p>
+              </div>
+              <span className="text-4xl">{getTrendEmoji()}</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <p className="font-semibold text-gray-600 mb-2">
+                💰 Vos profits s’afficheront ici
+              </p>
+              <p className="text-sm text-gray-500">
+                Dès que vous ajouterez vos premières ventes ou dépenses, vous
+                verrez vos gains en temps réel !
+              </p>
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-600 mb-2">
+                  📈 Vos tendances s’afficheront ici
+                </p>
+                <p className="text-sm text-gray-500">
+                  Après 7 jours d’utilisation, vous pourrez suivre l’évolution
+                  de votre business.
+                </p>
+              </div>
+              <span className="text-4xl">{getTrendEmoji()}</span>
+            </div>
+          </>
+        )}
 
         {/* Low Stock Alert Section */}
         {stockData.lowStock.length > 0 && (
@@ -267,12 +314,23 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
 
         {/* Quick Actions */}
         <div className="space-y-3 pt-4">
-          <button
-            onClick={() => setShowAddEntry(true)}
-            className="w-full bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-colors text-lg"
-          >
-            {fr.dashboard.addEntryButton}
-          </button>
+          <div>
+            <button
+              onClick={() => setShowAddEntry(true)}
+              className="w-full bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-colors text-lg"
+            >
+              {entries.length > 0
+                ? fr.dashboard.addEntryButton
+                : "Ajouter ma première entrée"}
+            </button>
+
+            {entries.length === 0 && (
+              <p className="text-xs text-gray-500 mt-2 mb-6">
+                Une entrée peut être une vente, une dépense ou un achat de
+                stock. C’est rapide et facile !
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <button
