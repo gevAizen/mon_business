@@ -194,7 +194,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
       name: item.name,
       quantity: item.quantity.toString(),
       threshold: item.threshold.toString(),
-      unitSellingPrice: item.unitSellingPrice.toString(),
+      unitSellingPrice: item.unitSellingPrice?.toString(),
     });
     setShowAddForm(true);
   }, []);
