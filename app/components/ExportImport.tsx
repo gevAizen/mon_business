@@ -2,10 +2,10 @@
 
 import { useState, useRef } from "react";
 import { loadData, saveData, clearData } from "@/lib/storage";
-import type { BusinessData } from "@/types";
+import type { BusinessData, DailyEntry, StockItem } from "@/types";
 import { fr } from "@/lib/i18n";
 import PageWrapper from "./PageWrapper";
-import { exportCSV } from "@/lib/import_and_export";
+import { exportJSON, importJSON } from "@/lib/import_and_export";
 
 interface ExportImportProps {
   onBack: () => void;
@@ -31,23 +31,65 @@ export function ExportImport({ onBack }: ExportImportProps) {
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleExport = () => {
-    try {
-      exportCSV();
+  // ─── Export ──────────────────────────────────────────────────────────────────
 
+  const handleExport = async () => {
+    try {
+      await exportJSON();
       setMessageType("success");
       setMessage(fr.settings.exportSuccess);
-      setTimeout(() => setMessage(""), 3000);
-    } catch (error) {
-      console.error("Export failed:", error);
+    } catch {
       setMessageType("error");
       setMessage(fr.settings.exportError);
+    } finally {
       setTimeout(() => setMessage(""), 3000);
     }
   };
 
+  // ─── Import ───────────────────────────────────────────────────────────────────
+
   const handleImportClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    // Always reset the input so the same file can be re-selected after an error
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".json")) {
+      setMessageType("error");
+      setMessage(fr.settings.invalidFormat);
+      setTimeout(() => setMessage(""), 5000);
+      return;
+    }
+
+    // importJSON returns a Result — no try/catch needed here, errors are values
+    const result = await importJSON(file);
+
+    if (!result.ok) {
+      setMessageType("error");
+      setMessage(result.error);
+      setTimeout(() => setMessage(""), 5000);
+      return;
+    }
+
+    const confirmed = window.confirm(fr.settings.importConfirm);
+    if (!confirmed) return;
+
+    const currentData = loadData();
+    if (saveData({ ...result.data, settings: currentData.settings })) {
+      setMessageType("success");
+      setMessage(fr.settings.importSuccess);
+    } else {
+      setMessageType("error");
+      setMessage(fr.settings.importError);
+    }
+    setTimeout(() => setMessage(""), 3000);
   };
 
   const handleClearData = () => {
@@ -61,54 +103,6 @@ export function ExportImport({ onBack }: ExportImportProps) {
         window.location.href = "/";
       }, 2000);
     }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const importedData = JSON.parse(content);
-
-        if (!isValidImportData(importedData)) {
-          throw new Error(fr.settings.invalidFormat);
-        }
-
-        const confirmed = window.confirm(fr.settings.importConfirm);
-
-        if (!confirmed) return;
-
-        if (saveData(importedData)) {
-          setMessageType("success");
-          setMessage(fr.settings.importSuccess);
-          setTimeout(() => setMessage(""), 3000);
-        } else {
-          throw new Error(fr.settings.importError);
-        }
-      } catch (error) {
-        console.error("Import failed:", error);
-        setMessageType("error");
-        setMessage(
-          `${fr.common.error}: ${error instanceof Error ? error.message : fr.settings.importError}`,
-        );
-        setTimeout(() => setMessage(""), 5000);
-      }
-    };
-
-    reader.onerror = () => {
-      setMessageType("error");
-      setMessage(fr.settings.fileReadError);
-      setTimeout(() => setMessage(""), 3000);
-    };
-
-    reader.readAsText(file);
-
-    // Reset input
-    event.target.value = "";
   };
 
   return (
