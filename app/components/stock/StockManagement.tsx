@@ -1,11 +1,12 @@
 // app/components/StockManagement.tsx
 "use client";
 
+import { addOrUpdateEntry } from "@/lib/entries";
 import { fr } from "@/lib/i18n";
 import { loadData, saveData } from "@/lib/storage";
-import { addOrUpdateEntry } from "@/lib/entries";
-import type { StockItem, DailyEntry } from "@/types";
-import { useState, useMemo, useCallback } from "react";
+import type { DailyEntry, StockItem } from "@/types";
+import { useCallback, useMemo, useState } from "react";
+import AddIconButton from "../common/AddIconButton";
 import PageWrapper from "../PageWrapper";
 import {
   EmptyStock,
@@ -14,7 +15,6 @@ import {
   StockForm,
   StockSearchBar,
 } from "./StockSubcomponents";
-import { Plus } from "lucide-react";
 
 // ─────────────────────────────────────────────
 // Types
@@ -267,15 +267,13 @@ export function StockManagement({ onBack }: StockManagementProps) {
         )}
 
         {/* Add Entry Button */}
-        <button
-          onClick={() => {
+        <AddIconButton
+          onPress={() => {
             resetForm();
             setShowAddForm(true);
           }}
-          className="fixed right-4 bottom-20 w-12 h-12 flex items-center justify-center bg-[#60b8c0] text-white font-semibold py-4 rounded-full transition-colors text-lg"
-        >
-          <Plus />
-        </button>
+          label="Ajouter un nouveau produit"
+        />
 
         {/* Add/Edit Form */}
         {showAddForm && (

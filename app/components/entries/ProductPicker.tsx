@@ -20,7 +20,7 @@ export function ProductPicker({
       <input
         className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#60b8c0]"
         type="text"
-        placeholder="Type product name"
+        placeholder="Saisir le nom du produit"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);

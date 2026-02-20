@@ -10,8 +10,8 @@ import { fr } from "@/lib/i18n";
 import { loadData } from "@/lib/storage";
 import type { DailyEntry, ExpenseCategory, StockItem } from "@/types";
 import { useCallback, useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react"; // small, semantic trash icon
 import { AddEntry } from "../AddEntry";
+import AddIconButton from "../common/AddIconButton";
 import PageWrapper from "../PageWrapper";
 import { DayCard, MonthSummaryBar } from "./EntriesSubcomponents";
 
@@ -201,15 +201,13 @@ export function EntriesList({ onBack }: EntriesListProps) {
         />
 
         {/* Add Entry Button */}
-        <button
-          onClick={() => {
+        <AddIconButton
+          onPress={() => {
             setEditingEntry(undefined);
             setShowAddEntry(true);
           }}
-          className="fixed right-4 bottom-20 w-12 h-12 flex items-center justify-center bg-[#60b8c0] text-white font-semibold py-4 rounded-full transition-colors text-lg"
-        >
-          <Plus />
-        </button>
+          label="Ajouter une nouvelle transaction"
+        />
 
         {/* Entries grouped by day */}
         {dayKeys.length === 0 ? (
