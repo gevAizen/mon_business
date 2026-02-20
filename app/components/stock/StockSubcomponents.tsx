@@ -77,7 +77,7 @@ export const StockCard: React.FC<StockCardProps> = ({
             onClick={() => onInitialStock(item)}
             className="w-full py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
           >
-            ➕ Ajouter le stock initial
+            Ajouter le stock initial
           </button>
         </div>
       )}

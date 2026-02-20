@@ -169,3 +169,21 @@ export function getAllEntries(): DailyEntry[] {
   const data = loadData();
   return data.entries;
 }
+
+/**
+ * Returns all entries recorded during a given calendar month,
+ * using timestamp boundaries so no string conversion is needed at query time.
+ *
+ * @param yearMonth - Month to filter for, in "YYYY-MM" format (e.g. "2025-06")
+ */
+export function getEntriesForMonth(yearMonth: string): DailyEntry[] {
+  // Parse "YYYY-MM" into the start and end boundaries of that month
+  const [year, month] = yearMonth.split("-").map(Number);
+
+  const start = new Date(year, month - 1, 1).getTime(); // first ms of month
+  const end = new Date(year, month, 1).getTime(); // first ms of NEXT month
+
+  return loadData().entries.filter(
+    (e) => e.timestamp >= start && e.timestamp < end,
+  );
+}

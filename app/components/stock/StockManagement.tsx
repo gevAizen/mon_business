@@ -14,6 +14,7 @@ import {
   StockForm,
   StockSearchBar,
 } from "./StockSubcomponents";
+import { Plus } from "lucide-react";
 
 // ─────────────────────────────────────────────
 // Types
@@ -82,8 +83,19 @@ export function StockManagement({ onBack }: StockManagementProps) {
   // Without it, every keystroke anywhere on the page would re-filter the list.
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return items;
-    return items.filter((item) => item.name.toLowerCase().includes(query));
+    const baseItems = [...items]; // copy to avoid mutation
+
+    if (!query) {
+      return baseItems.sort((a, b) =>
+        a.name.localeCompare(b.name, "fr", { sensitivity: "base" }),
+      );
+    }
+
+    return baseItems
+      .filter((item) => item.name.toLowerCase().includes(query))
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, "fr", { sensitivity: "base" }),
+      );
   }, [items, searchQuery]);
 
   // ── Helpers ───────────────────────────────────
@@ -236,15 +248,15 @@ export function StockManagement({ onBack }: StockManagementProps) {
           <StockSearchBar value={searchQuery} onChange={setSearchQuery} />
         )}
 
-        {/* Add button */}
+        {/* Add Entry Button */}
         <button
           onClick={() => {
             resetForm();
             setShowAddForm(true);
           }}
-          className="w-full bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors text-lg"
+          className="fixed right-4 bottom-20 w-12 h-12 flex items-center justify-center bg-[#60b8c0] text-white font-semibold py-4 rounded-full transition-colors text-lg"
         >
-          + {fr.stock.addProduct}
+          <Plus />
         </button>
 
         {/* Add/Edit Form */}

@@ -12,7 +12,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({ children, header }) => {
       {header && (
         <div className="shrink-0 p-6 border-b border-gray-300">{header}</div>
       )}
-      <div className="px-6 space-y-6 flex-1 pt-8 pb-4 overflow-auto">
+      <div className="px-6 space-y-6 flex-1 pt-6 pb-4 overflow-auto">
         {children}
         <div className="h-5" />
       </div>

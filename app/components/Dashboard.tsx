@@ -21,6 +21,7 @@ import { AddEntry } from "./AddEntry";
 import { addOrUpdateEntry } from "@/lib/entries";
 import { Page } from "../page";
 import PageWrapper from "./PageWrapper";
+import { ChevronRight, ChevronRightCircle, DoorOpen, Info } from "lucide-react";
 
 export function Dashboard({ settings, onNavigate }: DashboardProps) {
   // Initialize with empty array, load in useEffect
@@ -124,8 +125,8 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
                 className="p-2 border-2 border-gray-200 bg-linear-to-b from-blue-50 to-green-50 hover:from-blue-100 hover:to-white rounded-lg transition-colors flex items-center justify-center"
                 aria-label={fr.nav.analytics}
               >
-                <span className="text-base leading-none">
-                  📊 Voir mon bilan
+                <span className="inline-flex items-center gap-1 text-base leading-none">
+                  Voir mon bilan <ChevronRight />
                 </span>
               </button>
             </div>

@@ -7,10 +7,18 @@ import { fr } from "@/lib/i18n";
 import { Onboarding } from "./components/Onboarding";
 import { Dashboard } from "./components/Dashboard";
 import { StockManagement } from "./components/stock/StockManagement";
-import { EntriesList } from "./components/EntriesList";
+import { EntriesList } from "./components/entries/EntriesList";
 import { ExportImport } from "./components/ExportImport";
 import { InstallBanner } from "./components/InstallBanner";
 import { Analytics } from "./components/Analytics";
+import {
+  BookText,
+  ChartColumn,
+  Database,
+  Layers,
+  SquareActivity,
+  Warehouse,
+} from "lucide-react";
 
 export type Page =
   | "dashboard"
@@ -85,7 +93,9 @@ export default function Home() {
                 : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
-            <span className="text-xl">📊</span>
+            <span className="text-xl">
+              <ChartColumn />
+            </span>
             <span className="text-xs font-semibold">{fr.nav.dashboard}</span>
           </button>
 
@@ -97,7 +107,9 @@ export default function Home() {
                 : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
-            <span className="text-xl">📋</span>
+            <span className="text-xl">
+              <BookText />
+            </span>
             <span className="text-xs font-semibold">{fr.nav.entries}</span>
           </button>
 
@@ -109,7 +121,9 @@ export default function Home() {
                 : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
-            <span className="text-xl">📦</span>
+            <span className="text-xl">
+              <Layers />
+            </span>
             <span className="text-xs font-semibold">{fr.nav.stock}</span>
           </button>
 
@@ -121,7 +135,9 @@ export default function Home() {
                 : "text-gray-600 border-t-2 border-transparent hover:text-gray-900"
             }`}
           >
-            <span className="text-xl">⚙️</span>
+            <span className="text-xl">
+              <Database />
+            </span>
             <span className="text-xs font-semibold">{fr.nav.settings}</span>
           </button>
         </div>
