@@ -58,6 +58,8 @@ export interface DailyEntry {
 
   // Financials
   amount: number; // Total value (Revenue for Sale, Cost for Expense)
+
+  [key: string]: string | number | boolean | undefined; //  For export
 }
 
 /**
@@ -72,6 +74,8 @@ export interface StockItem {
   totalSold: number; // Cumulative units sold (for analytics)
   unitPrice?: number; // Optional: unit cost/price
   hasInitialStockTransaction: boolean; // True once the first stocking purchase has been recorded
+
+  [key: string]: string | number | boolean | undefined; //  For export
 }
 
 export interface BusinessSettings {

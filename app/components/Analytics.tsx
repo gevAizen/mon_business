@@ -179,7 +179,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
               </div>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-              <div className="text-xs text-gray-500 mb-1">Profit estimé</div>
+              <div className="text-xs text-gray-500 mb-1">Profit effectué</div>
               <div
                 className={`text-lg font-bold ${productPerformance.summary.totalProfit > 0 ? "text-green-600" : "text-red-500"}`}
               >
@@ -264,7 +264,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
                     {/* Show projected if there's unrealized value */}
                     {product.unrealizedValue > 0 && (
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Projeté: {formatCurrency(product.projectedRevenue)}
+                        Prévision: {formatCurrency(product.projectedRevenue)}
                       </p>
                     )}
                   </div>

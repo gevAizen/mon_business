@@ -5,6 +5,7 @@ import { loadData, saveData, clearData } from "@/lib/storage";
 import type { BusinessData } from "@/types";
 import { fr } from "@/lib/i18n";
 import PageWrapper from "./PageWrapper";
+import { exportCSV } from "@/lib/import_and_export";
 
 interface ExportImportProps {
   onBack: () => void;
@@ -32,17 +33,7 @@ export function ExportImport({ onBack }: ExportImportProps) {
 
   const handleExport = () => {
     try {
-      const data = loadData();
-      const dataStr = JSON.stringify(data, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `mon_business_${new Date().toISOString().split("T")[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      exportCSV();
 
       setMessageType("success");
       setMessage(fr.settings.exportSuccess);
@@ -147,7 +138,7 @@ export function ExportImport({ onBack }: ExportImportProps) {
           </p>
           <button
             onClick={handleExport}
-            className="w-full bg-[#60b8c0] hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+            className="w-full bg-[#60b8c0] text-white font-semibold py-3 rounded-lg transition-colors"
           >
             {fr.settings.exportData}
           </button>
