@@ -44,10 +44,6 @@ function generateItemId(): string {
   return `stock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
-function isLowStock(item: StockItem): boolean {
-  return item.quantity <= item.threshold;
-}
-
 const EMPTY_FORM: StockFormData = { name: "", quantity: "0", threshold: "" };
 
 // ─────────────────────────────────────────────
