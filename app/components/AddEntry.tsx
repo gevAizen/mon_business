@@ -160,7 +160,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50 mb-0">
       <div className="w-full bg-white rounded-t-2xl p-6 pb-10 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
