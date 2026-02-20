@@ -311,21 +311,6 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
             </p>
           )}
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => onNavigate("entries")}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 rounded-xl transition-colors"
-          >
-            {fr.dashboard.entriesButton}
-          </button>
-          <button
-            onClick={() => onNavigate("stock")}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 rounded-xl transition-colors"
-          >
-            {fr.dashboard.stockButton}
-          </button>
-        </div>
       </div>
 
       {/* Add Entry Modal */}
