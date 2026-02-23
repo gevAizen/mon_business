@@ -1,5 +1,5 @@
 import { StockItem } from "@/types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export function ProductPicker({
   products,
@@ -11,16 +11,29 @@ export function ProductPicker({
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const filteredProducts = products.filter((item) =>
-    item.name.toLowerCase().includes(query),
-  );
+  const filteredProducts = useMemo(() => {
+    const searchQuery = query.trim().toLowerCase();
+    const baseItems = [...products]; // copy to avoid mutation
+
+    if (!searchQuery) {
+      return baseItems.sort((a, b) =>
+        a.name.localeCompare(b.name, "fr", { sensitivity: "base" }),
+      );
+    }
+
+    return baseItems
+      .filter((item) => item.name.toLowerCase().includes(searchQuery))
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, "fr", { sensitivity: "base" }),
+      );
+  }, [products, query]);
 
   return (
     <div>
       <input
         className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#60b8c0]"
         type="text"
-        placeholder="Saisir le nom du produit"
+        placeholder={`Saisir le nom du produit ${filteredProducts.length}`}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
