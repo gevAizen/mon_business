@@ -1,23 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { loadData, saveData, clearData } from "@/lib/storage";
-import type { BusinessData, DailyEntry, StockItem } from "@/types";
 import { fr } from "@/lib/i18n";
-import PageWrapper from "./PageWrapper";
 import { exportJSON, importJSON } from "@/lib/import_and_export";
+import { clearData, loadData, saveData } from "@/lib/storage";
+import type { BusinessData } from "@/types";
+import { useRef, useState } from "react";
+import PageWrapper from "./PageWrapper";
 
 interface ExportImportProps {
   onBack: () => void;
 }
 
-/**
- * Validates imported data structure
- */
 function isValidImportData(data: unknown): data is BusinessData {
   if (typeof data !== "object" || data === null) return false;
   const d = data as Record<string, unknown>;
-
   return (
     typeof d.settings === "object" &&
     d.settings !== null &&
@@ -30,8 +26,6 @@ export function ExportImport({ onBack }: ExportImportProps) {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // ─── Export ──────────────────────────────────────────────────────────────────
 
   const handleExport = async () => {
     try {
@@ -46,8 +40,6 @@ export function ExportImport({ onBack }: ExportImportProps) {
     }
   };
 
-  // ─── Import ───────────────────────────────────────────────────────────────────
-
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
@@ -56,7 +48,7 @@ export function ExportImport({ onBack }: ExportImportProps) {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-    // Always reset the input so the same file can be re-selected after an error
+    // Reset input value so selecting the same file again triggers onChange
     event.target.value = "";
 
     if (!file) return;
@@ -68,9 +60,7 @@ export function ExportImport({ onBack }: ExportImportProps) {
       return;
     }
 
-    // importJSON returns a Result — no try/catch needed here, errors are values
     const result = await importJSON(file);
-
     if (!result.ok) {
       setMessageType("error");
       setMessage(result.error);
@@ -82,6 +72,7 @@ export function ExportImport({ onBack }: ExportImportProps) {
     if (!confirmed) return;
 
     const currentData = loadData();
+    // Preserve existing settings during import as requested in original logic
     if (saveData({ ...result.data, settings: currentData.settings })) {
       setMessageType("success");
       setMessage(fr.settings.importSuccess);
@@ -107,85 +98,113 @@ export function ExportImport({ onBack }: ExportImportProps) {
 
   return (
     <PageWrapper header={<HeaderComponent />}>
-      {/* Content */}
-      <div className="flex-1 pb-4 overflow-auto space-y-6">
-        {/* Message */}
+      <div className="flex-1 pb-8 overflow-auto">
+        {/* Global Message Alert */}
         {message && (
           <div
-            className={`p-4 rounded-lg ${
+            className={`mb-6 p-4 rounded-lg border flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${
               messageType === "success"
-                ? "bg-green-50 border border-green-200 text-green-700"
-                : "bg-red-50 border border-red-200 text-red-700"
+                ? "bg-green-50 border-green-200 text-green-800"
+                : "bg-red-50 border-red-200 text-red-800"
             }`}
           >
-            {message}
+            <span className="text-xl">
+              {messageType === "success" ? "✅" : "⚠️"}
+            </span>
+            <p className="font-medium">{message}</p>
           </div>
         )}
 
-        {/* Export Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
-            {fr.settings.exportTitle}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {fr.settings.exportDescription}
-          </p>
-          <button
-            onClick={handleExport}
-            className="w-full bg-[#60b8c0] text-white font-semibold py-3 rounded-lg transition-colors"
-          >
-            {fr.settings.exportData}
-          </button>
+        {/* Main Actions Grid */}
+        {/* 
+           - grid-cols-1: Mobile (stacked)
+           - md:grid-cols-3: Desktop (side-by-side)
+           - gap-6: Generous spacing for big screens
+        */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Export Card */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 flex flex-col h-full hover:shadow-md transition-shadow duration-300">
+            <div className="flex-1 space-y-3">
+              <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                <span className="text-2xl">📤</span> {fr.settings.exportTitle}
+              </h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {fr.settings.exportDescription}
+              </p>
+            </div>
+            <button
+              onClick={handleExport}
+              className="mt-6 w-full bg-[#60b8c0] hover:bg-[#5aaeb6] text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm active:scale-[0.98] transform"
+            >
+              {fr.settings.exportData}
+            </button>
+          </div>
+
+          {/* Import Card */}
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 flex flex-col h-full hover:shadow-md transition-shadow duration-300">
+            <div className="flex-1 space-y-3">
+              <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                <span className="text-2xl">📥</span> {fr.settings.importTitle}
+              </h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {fr.settings.importDescription}
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              onClick={handleImportClick}
+              className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm active:scale-[0.98] transform"
+            >
+              {fr.settings.importData}
+            </button>
+          </div>
+
+          {/* Clear Data Card */}
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex flex-col h-full hover:shadow-md transition-shadow duration-300">
+            <div className="flex-1 space-y-3">
+              <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                <span className="text-2xl">🗑️</span>{" "}
+                {fr.settings.clearDataTitle}
+              </h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {fr.settings.clearDataDescription}
+              </p>
+            </div>
+            <button
+              onClick={handleClearData}
+              className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm active:scale-[0.98] transform"
+            >
+              {fr.settings.clearDataButton}
+            </button>
+          </div>
         </div>
 
-        {/* Import Section */}
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
-            {fr.settings.importTitle}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {fr.settings.importDescription}
-          </p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <button
-            onClick={handleImportClick}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-colors"
-          >
-            {fr.settings.importData}
-          </button>
-        </div>
-
-        {/* Clear Data Section - Destructive action */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
-            {fr.settings.clearDataTitle}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {fr.settings.clearDataDescription}
-          </p>
-          <button
-            onClick={handleClearData}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition-colors"
-          >
-            {fr.settings.clearDataButton}
-          </button>
-        </div>
-
-        {/* Info Section */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-3">
-          <h3 className="font-semibold text-gray-900">
-            {fr.settings.privacyTitle}
+        {/* Privacy Information Section */}
+        {/* Spans full width below the grid */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 md:p-8 shadow-sm">
+          <h3 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
+            <span className="text-xl">🔒</span> {fr.settings.privacyTitle}
           </h3>
-          <ul className="text-sm text-gray-600 space-y-2">
-            <li>{fr.settings.privacyPoint1}</li>
-            <li>{fr.settings.privacyPoint2}</li>
-            <li>{fr.settings.privacyPoint3}</li>
+          <ul className="space-y-3">
+            {[
+              fr.settings.privacyPoint1,
+              fr.settings.privacyPoint2,
+              fr.settings.privacyPoint3,
+            ].map((point, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-3 text-sm text-gray-600"
+              >
+                <span className="mt-1.5 w-1.5 h-1.5 bg-gray-400 rounded-full shrink-0" />
+                <span className="leading-relaxed">{point}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -193,14 +212,15 @@ export function ExportImport({ onBack }: ExportImportProps) {
   );
 }
 
-// Define HeaderComponent outside with props
 const HeaderComponent: React.FC = () => {
   return (
-    <div className="flex flex-col gap-2">
-      <h1 className="text-2xl font-bold text-gray-900">
+    <div className="flex flex-col gap-1">
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
         {fr.settings.dataTitle}
       </h1>
-      <p className="text-gray-600 text-sm">{fr.settings.dataSubtitle}</p>
+      <p className="text-gray-600 text-sm md:text-base">
+        {fr.settings.dataSubtitle}
+      </p>
     </div>
   );
 };

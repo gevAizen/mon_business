@@ -55,6 +55,16 @@ export interface DailyEntry {
   [key: string]: string | number | boolean | undefined; //  For export
 }
 
+// UI helper type used when building multi-item sale forms.
+// Quantities and prices are strings because they come from text inputs.
+// The `id` field is just for React list keys; it is not persisted.
+export interface SaleLineItemInput {
+  id: string;
+  productId: string;
+  quantity: string;
+  unitPrice: string;
+}
+
 /**
  * Stock Item
  * Tracks inventory with sales history for analytics

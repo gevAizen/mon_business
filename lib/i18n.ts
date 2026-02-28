@@ -117,10 +117,10 @@ export const fr = {
     dataTitle: "Mes données en sécurité",
     dataSubtitle:
       "Sauvegarder vos données ou restaurer une ancienne sauvegarde",
-    exportTitle: "💾 Télécharger mes données",
+    exportTitle: "Télécharger mes données",
     exportDescription:
       "Créez une sauvegarde de toutes vos données de business. Vous pourrez réimporter ce fichier ultérieurement.",
-    importTitle: "📂 Importer mes données",
+    importTitle: "Importer mes données",
     importDescription:
       "Restaurez vos données à partir d'une sauvegarde précédente. Vos données actuelles seront remplacées.",
     privacyTitle: "🔒 Votre vie privée",
@@ -135,7 +135,7 @@ export const fr = {
     importError: "Impossible de sauvegarder les données",
     fileReadError: "Erreur lors de la lecture du fichier",
     invalidFormat: "Format de fichier invalide",
-    clearDataTitle: "🗑️ Supprimer toutes les données",
+    clearDataTitle: "Supprimer toutes les données",
     clearDataDescription:
       "Ceci supprimera définitivement toutes vos données (entrées, stock, paramètres). Cette action ne peut pas être annulée.",
     clearDataButton: "Supprimer les données",
