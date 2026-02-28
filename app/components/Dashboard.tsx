@@ -1,27 +1,24 @@
-import { useState, useEffect } from "react";
-import type { BusinessSettings, DailyEntry } from "@/types";
-import { loadData } from "@/lib/storage";
+import { addOrUpdateEntry } from "@/lib/entries";
+import { calculateHealthScore, getHealthScoreColor } from "@/lib/healthScore";
+import { fr } from "@/lib/i18n";
 import {
-  getTodayProfit,
-  getMonthlyProfit,
   getLast7DaysTrend,
+  getMonthlyProfit,
+  getTodayProfit,
 } from "@/lib/profit";
-import {
-  calculateHealthScore,
-  getHealthScoreColor,
-  getHealthScoreEmoji,
-} from "@/lib/healthScore";
 import {
   getLowStockItems,
   getTopSellingProducts,
   type LowStockItem,
 } from "@/lib/stock";
-import { fr } from "@/lib/i18n";
-import { AddEntry } from "./AddEntry";
-import { addOrUpdateEntry } from "@/lib/entries";
+import { loadData } from "@/lib/storage";
+import type { BusinessSettings, DailyEntry } from "@/types";
+import { ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Page } from "../page";
+// import { AddEntry } from "./AddEntry";
 import PageWrapper from "./PageWrapper";
-import { ChevronRight, ChevronRightCircle, DoorOpen, Info } from "lucide-react";
+import { AddEntry } from "./AddEntry";
 
 export function Dashboard({ settings, onNavigate }: DashboardProps) {
   // Initialize with empty array, load in useEffect
@@ -65,8 +62,16 @@ export function Dashboard({ settings, onNavigate }: DashboardProps) {
   const healthScore = calculateHealthScore(entries, settings.dailyTarget);
   const trend = getLast7DaysTrend(entries);
 
-  const handleAddEntry = (entry: DailyEntry) => {
-    if (addOrUpdateEntry(entry)) {
+  // now accepts multiple entries (sale batch)
+  const handleAddEntry = (entries: DailyEntry[]) => {
+    let saved = true;
+    entries.forEach((entry) => {
+      if (!addOrUpdateEntry(entry)) {
+        saved = false;
+      }
+    });
+
+    if (saved) {
       setShowAddEntry(false);
 
       // Refresh entries from storage

@@ -11,7 +11,7 @@ export function StatCard({ label, value, colorClass }: StatCardProps) {
         {label}
       </span>
       <span className={`text-lg md:text-xl font-bold mt-1 ${colorClass}`}>
-        {value.toLocaleString("fr-FR")}
+        {value.toLocaleString("fr-FR")} CFA
       </span>
     </div>
   );

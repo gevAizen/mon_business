@@ -10,6 +10,8 @@ export type ExpenseCategory =
   | "Loyer"
   | "Salaire"
   | "Internet"
+  | "Electricity"
+  | "Epargne"
   | "Autre";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
@@ -18,6 +20,8 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "Loyer",
   "Salaire",
   "Internet",
+  "Electricity",
+  "Epargne",
   "Autre",
 ];
 
@@ -49,6 +53,16 @@ export interface DailyEntry {
   amount: number; // Total value (Revenue for Sale, Cost for Expense)
 
   [key: string]: string | number | boolean | undefined; //  For export
+}
+
+// UI helper type used when building multi-item sale forms.
+// Quantities and prices are strings because they come from text inputs.
+// The `id` field is just for React list keys; it is not persisted.
+export interface SaleLineItemInput {
+  id: string;
+  productId: string;
+  quantity: string;
+  unitPrice: string;
 }
 
 /**

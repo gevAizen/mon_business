@@ -10,7 +10,7 @@ import { fr } from "@/lib/i18n";
 import { loadData } from "@/lib/storage";
 import type { DailyEntry, ExpenseCategory, StockItem } from "@/types";
 import { useCallback, useMemo, useState } from "react";
-import { AddEntry } from "../AddEntry";
+import { AddEntry } from "../AddEntry/index";
 import AddIconButton from "../common/AddIconButton";
 import PageWrapper from "../PageWrapper";
 import { MonthSummary } from "./MonthSummary";
@@ -155,8 +155,14 @@ export function EntriesList({ onBack }: EntriesListProps) {
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
-  const handleSaveEntry = (entry: DailyEntry) => {
-    if (addOrUpdateEntry(entry)) {
+  const handleSaveEntry = (entries: DailyEntry[]) => {
+    let ok = true;
+    entries.forEach((entry) => {
+      if (!addOrUpdateEntry(entry)) {
+        ok = false;
+      }
+    });
+    if (ok) {
       setShowAddEntry(false);
       setEditingEntry(undefined);
       refreshStock();

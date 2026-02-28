@@ -34,6 +34,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
   const [performanceSortDirection, setPerformanceSortDirection] = useState<
     "asc" | "desc"
   >("desc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Filter entries based on selected time range
   const now = new Date();
@@ -73,18 +74,27 @@ export function Analytics({ onBack }: AnalyticsProps) {
     });
   }, [filteredEntries, stock, filter]);
 
-  // Sort performance data
+  // Sort and filter performance data
   const sortedPerformance = useMemo(() => {
-    return [...productPerformance.products].sort((a, b) => {
-      const aVal = a[performanceSortField];
-      const bVal = b[performanceSortField];
+    return [...productPerformance.products]
+      .filter((product) =>
+        product.productName.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+      .sort((a, b) => {
+        const aVal = a[performanceSortField];
+        const bVal = b[performanceSortField];
 
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return performanceSortDirection === "asc" ? aVal - bVal : bVal - aVal;
-      }
-      return 0;
-    });
-  }, [productPerformance, performanceSortField, performanceSortDirection]);
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          return performanceSortDirection === "asc" ? aVal - bVal : bVal - aVal;
+        }
+        return 0;
+      });
+  }, [
+    productPerformance,
+    performanceSortField,
+    performanceSortDirection,
+    searchQuery,
+  ]);
 
   const handlePerformanceSort = (field: keyof ProductPerformance) => {
     if (field === performanceSortField) {
@@ -146,7 +156,7 @@ export function Analytics({ onBack }: AnalyticsProps) {
       {/* Header */}
       <div className="bg-white px-6 py-4 -mt-4 rounded-xl border border-gray-300 sticky -top-6 z-10">
         {/* Filter Tabs */}
-        <div className="flex bg-gray-100 p-1 rounded-lg">
+        <div className="flex bg-gray-100 p-1 rounded-lg max-w-4xl mx-auto">
           {(["today", "week", "month", "all"] as const).map((f) => (
             <button
               key={f}
@@ -205,14 +215,23 @@ export function Analytics({ onBack }: AnalyticsProps) {
         )}
 
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-4 md:mb-6">
+          <div className="flex flex-col md:flex-row justify-start md:justify-between items-start md:items-center gap-2 mb-4 md:mb-6">
             <h2 className="font-bold text-gray-800">
               Performance détaillée des produits
             </h2>
+
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder="Chercher un produit..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
 
           <div className="md:hidden space-y-3">
-            {productPerformance.products.map((product) => (
+            {sortedPerformance.map((product) => (
               <div
                 key={product.productId}
                 className="py-4 border-t border-gray-300"

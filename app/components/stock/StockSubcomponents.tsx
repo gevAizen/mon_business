@@ -137,7 +137,7 @@ export const StockForm: React.FC<StockFormProps> = ({
   onCancel,
 }) => (
   <div className="fixed inset-0 p-6 bg-black/40 flex items-center justify-center z-50 mb-0">
-    <div className="w-full bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
+    <div className="w-full max-w-4xl bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
       <h2 className="font-semibold text-gray-900 text-lg">
         {editingId ? "Modifier le produit" : "Ajouter un produit"}
       </h2>
