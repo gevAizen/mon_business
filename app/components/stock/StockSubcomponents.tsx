@@ -20,72 +20,94 @@ export const StockCard: React.FC<StockCardProps> = ({
 }) => {
   const low = isLowStock(item);
 
+  // Dynamic classes for the card border/background based on stock status
+  const cardBaseClasses = "border-2 rounded-xl p-5 transition-all duration-200";
+  const cardStatusClasses = low
+    ? "border-amber-200 bg-amber-50"
+    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg";
+
   return (
-    <div
-      className={`border-2 rounded-xl p-4 ${
-        low
-          ? "border-amber-200 bg-amber-50"
-          : "border-gray-200 bg-white hover:border-gray-300"
-      }`}
-    >
-      <div className="flex items-start justify-between mb-3">
+    <div className={`${cardBaseClasses} ${cardStatusClasses}`}>
+      {/* --- Header Section: Name & Badge --- */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{item.name}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
             {low && (
-              <span className="text-xs bg-amber-600 text-white px-2 py-1 rounded-full">
+              <span className="text-xs font-medium bg-amber-600 text-white px-2.5 py-1 rounded-full shadow-sm">
                 ⚠️ Bas
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600 mt-1">
-            Quantité: <span className="font-semibold">{item.quantity}</span>{" "}
-            (Seuil: {item.threshold})
+
+          {/* Quantity Info */}
+          <p className="text-sm text-gray-600 mt-2">
+            Quantité:{" "}
+            <span
+              className={`font-semibold ${low ? "text-amber-700" : "text-gray-900"}`}
+            >
+              {item.quantity}
+            </span>
+            <span className="text-gray-400 mx-1">/</span>
+            Seuil: {item.threshold}
           </p>
-          <div className="flex gap-4 mt-2 text-sm text-gray-500">
-            <span className="bg-gray-100 px-2 py-1 rounded">
-              💰{" "}
-              {item.unitSellingPrice
-                ? item.unitSellingPrice.toLocaleString("fr-FR")
-                : 0}{" "}
-              CFA
-            </span>
-            <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
-              📈 Vendus: {item.totalSold ?? 0}
-            </span>
-          </div>
         </div>
       </div>
 
-      <div className="hidden text-xs text-gray-500">
-        <p>[unitSellingPrice]: {JSON.stringify(item.unitSellingPrice)}</p>
-        <p>[unitPrice]: {JSON.stringify(item.unitPrice)}</p>
+      {/* --- Stats Row: Price & Sales --- */}
+      <div className="flex gap-3 mb-5 text-sm">
+        <div className="bg-gray-50 border border-gray-100 px-3 py-2 rounded-lg flex-1">
+          <span className="block text-xs text-gray-500 mb-0.5">Prix Unit.</span>
+          <span className="font-semibold text-gray-700">
+            💰{" "}
+            {item.unitSellingPrice
+              ? item.unitSellingPrice.toLocaleString("fr-FR")
+              : 0}{" "}
+            CFA
+          </span>
+        </div>
+        <div className="bg-blue-50 border border-blue-100 px-3 py-2 rounded-lg flex-1">
+          <span className="block text-xs text-blue-600 mb-0.5">Vendus</span>
+          <span className="font-semibold text-blue-800">
+            📈 {item.totalSold ?? 0}
+          </span>
+        </div>
       </div>
 
-      <div className="flex gap-2">
+      {/* --- Debug Info (Hidden by default, useful for dev) --- */}
+      <div className="hidden text-[10px] text-gray-400 font-mono mb-4 break-all">
+        <p>Selling: {JSON.stringify(item.unitSellingPrice)}</p>
+        <p>Cost: {JSON.stringify(item.unitPrice)}</p>
+      </div>
+
+      {/* --- Action Buttons --- */}
+      <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => onEdit(item)}
-          className="flex-1 py-2 text-sm font-semibold text-[#60b8c0] hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+          className="py-2.5 text-sm font-semibold text-[#60b8c0] bg-white hover:bg-[#60b8c0]/5 rounded-lg transition-colors border border-[#60b8c0]/30"
         >
-          {fr.stock.edit}
+          Modifier
         </button>
         <button
           onClick={() => {
-            if (confirm("Êtes-vous sûr ?")) onDelete(item.id);
+            if (confirm("Êtes-vous sûr de vouloir supprimer cet article ?")) {
+              onDelete(item.id);
+            }
           }}
-          className="flex-1 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
+          className="py-2.5 text-sm font-semibold text-red-600 bg-white hover:bg-red-50 rounded-lg transition-colors border border-red-200"
         >
-          {fr.stock.delete}
+          Supprimer
         </button>
       </div>
 
+      {/* --- Initial Stock Button (Conditional) --- */}
       {!item.hasInitialStockTransaction && (
-        <div className="mt-3">
+        <div className="mt-4 pt-4 border-t border-amber-100">
           <button
             onClick={() => onInitialStock(item)}
-            className="w-full py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
+            className="w-full py-2.5 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors shadow-sm hover:shadow-md"
           >
-            Ajouter le stock initial
+            ➕ Ajouter le stock initial
           </button>
         </div>
       )}
@@ -285,7 +307,8 @@ export const InitialStockModal: React.FC<InitialStockModalProps> = ({
           Quantité achetée
         </label>
         <input
-          type="number"
+          type="text"
+          inputMode="decimal"
           value={formData.qty}
           placeholder="Ex: 10"
           onChange={(e) => onChange("qty", e.target.value)}

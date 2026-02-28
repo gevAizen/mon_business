@@ -13,7 +13,9 @@ import { useCallback, useMemo, useState } from "react";
 import { AddEntry } from "../AddEntry";
 import AddIconButton from "../common/AddIconButton";
 import PageWrapper from "../PageWrapper";
-import { DayCard, MonthSummaryBar } from "./EntriesSubcomponents";
+import { MonthSummary } from "./MonthSummary";
+import { SingleEntryList } from "./SingleEntryList";
+// import { DayCard, MonthSummaryBar } from "./EntriesSubcomponents";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -195,7 +197,7 @@ export function EntriesList({ onBack }: EntriesListProps) {
         </div>
 
         {/* Month Summary */}
-        <MonthSummaryBar
+        <MonthSummary
           sales={monthTotals.sales}
           expenses={monthTotals.expenses}
         />
@@ -215,9 +217,9 @@ export function EntriesList({ onBack }: EntriesListProps) {
             <p className="text-lg">Aucune entrée pour ce mois</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="flex flex-wrap justify-between gap-4">
             {dayKeys.map((dateKey) => (
-              <DayCard
+              <SingleEntryList
                 key={dateKey}
                 dateKey={dateKey}
                 entries={entriesByDay[dateKey]}

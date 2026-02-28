@@ -95,7 +95,7 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
       return;
     }
 
-    const qty = parseInt(quantity, 10);
+    const qty = parseFloat(quantity);
     const totalAmount = parseInt(amount || getProductDefaultSellingPrice(), 10);
 
     if (isNaN(totalAmount) || totalAmount < 0) {
@@ -243,10 +243,11 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
                   </label>
                   <input
                     id="quantity"
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="0"
+                    placeholder="0.0"
                     min="1"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -326,10 +327,11 @@ export function AddEntry({ existingEntry, onSave, onCancel }: AddEntryProps) {
                     </label>
                     <input
                       id="stockQty"
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={quantity}
                       onChange={(e) => setQuantity(e.target.value)}
-                      placeholder="0"
+                      placeholder="0.0"
                       min="1"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />

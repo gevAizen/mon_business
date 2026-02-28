@@ -212,7 +212,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
     if (!initialStockItem) return;
     setInitialError("");
 
-    const qty = parseInt(initialForm.qty, 10) || 0;
+    const qty = parseFloat(initialForm.qty) || 0;
     const amount = parseFloat(initialForm.amount);
 
     //  TODO: AFTER USER UPDATE STOCK, QTY <= 0
@@ -291,7 +291,7 @@ export function StockManagement({ onBack }: StockManagementProps) {
         {filteredItems.length === 0 ? (
           <EmptyStock hasItems={items.length > 0} />
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredItems.map((item) => (
               <StockCard
                 key={item.id}
