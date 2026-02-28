@@ -25,7 +25,7 @@ export function SingleEntryList({
   const net = totals.sales - totals.expenses;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 w-full md:w-[calc(1/3*100%-16px)] lg:w-[calc(50%-16px)]">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 w-full lg:w-[calc(1/3*100%-16px)] md:w-[calc(50%-16px)]">
       {/* Header: Responsive Flex */}
       <div className="bg-gray-50/80 backdrop-blur-sm px-4 py-3 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Date Title */}
@@ -41,7 +41,7 @@ export function SingleEntryList({
           {totals.sales > 0 && (
             <span className="text-green-600 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>+
-              {totals.sales.toLocaleString("fr-FR")} CFA
+              {totals.sales.toLocaleString("fr-FR")}
             </span>
           )}
 
@@ -52,7 +52,7 @@ export function SingleEntryList({
           {totals.expenses > 0 && (
             <span className="text-red-500 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>−
-              {totals.expenses.toLocaleString("fr-FR")} CFA
+              {totals.expenses.toLocaleString("fr-FR")}
             </span>
           )}
 
