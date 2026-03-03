@@ -248,3 +248,5 @@ When "Dépense" tab clicked:
 - **Stock Deletion**: Should deleting a stock item zero out totalSold? Decide: Keep history (safer) or reset
 - **Expense without Product**: Current design requires product for sales. Expense-only entries are common (rent, utilities) → works as standalone expense
 - **Mobile**: AddEntry tab switching needs clear visual feedback on small screens
+
+---

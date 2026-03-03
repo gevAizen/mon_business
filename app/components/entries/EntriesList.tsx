@@ -29,19 +29,6 @@ type EntriesByDay = Record<string, DailyEntry[]>;
 // ─── Pure helper functions (no side effects, easy to test) ───────────────────
 
 /**
- * Returns the local calendar date (YYYY-MM-DD) for a given Unix timestamp.
- * Uses local time rather than UTC so entries are bucketed into the correct
- * day for the user's timezone.
- */
-function toDateKey(timestamp: number): string {
-  const d = new Date(timestamp);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-/**
  * Groups a flat list of entries by their calendar day.
  * Returns days in reverse-chronological order (most recent first).
  *
@@ -53,24 +40,33 @@ function toDateKey(timestamp: number): string {
 function groupEntriesByDay(entries: DailyEntry[]): EntriesByDay {
   const grouped: EntriesByDay = {};
 
+  // 1. Grouping Logic
   for (const entry of entries) {
-    const key = toDateKey(entry.timestamp);
-    if (!grouped[key]) grouped[key] = [];
+    const key = entry.date;
+
+    // Initialize the array if this is the first entry for this date
+    if (!grouped[key]) {
+      grouped[key] = [];
+    }
+
     grouped[key].push(entry);
   }
 
-  // Sort each day's entries newest-first
+  // 2. Sorting Logic (Within each day)
   for (const key in grouped) {
-    grouped[key].sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    );
+    // NOTE: We keep 'timestamp' here!
+    // We want entries inside a single day ordered by time.
+    grouped[key].sort((a, b) => {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
   }
 
-  // Return days sorted newest-first
-  return Object.fromEntries(
-    Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a)),
-  );
+  // 3. Sort the days themselves (Newest day first)
+  const sortedEntries = Object.entries(grouped).sort(([dateA], [dateB]) => {
+    return dateB.localeCompare(dateA);
+  });
+
+  return Object.fromEntries(sortedEntries);
 }
 
 function getMonthValue(date: Date): string {
