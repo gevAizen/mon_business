@@ -172,13 +172,12 @@ export function getAllEntries(): DailyEntry[] {
  * @param yearMonth - Month to filter for, in "YYYY-MM" format (e.g. "2025-06")
  */
 export function getEntriesForMonth(yearMonth: string): DailyEntry[] {
-  // Parse "YYYY-MM" into the start and end boundaries of that month
-  const [year, month] = yearMonth.split("-").map(Number);
+  // We no longer need to create Date objects or calculate millisecond boundaries.
+  // We simply look for entries where the date string starts with the requested "YYYY-MM".
 
-  const start = new Date(year, month - 1, 1).getTime(); // first ms of month
-  const end = new Date(year, month, 1).getTime(); // first ms of NEXT month
-
-  return loadData().entries.filter(
-    (e) => e.timestamp >= start && e.timestamp < end,
-  );
+  return loadData().entries.filter((e) => {
+    // FIX: Check the 'date' string directly.
+    // e.date looks like "2023-10-27". yearMonth looks like "2023-10".
+    return e.date.startsWith(yearMonth);
+  });
 }
