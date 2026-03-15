@@ -11,7 +11,9 @@ export type ExpenseCategory =
   | "Salaire"
   | "Internet"
   | "Electricity"
-  | "Epargne"
+  | "EpargneMensuelle"
+  | "EpargneQuotidien"
+  | "EpargneHebdomadaire"
   | "Autre";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
@@ -21,7 +23,9 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "Salaire",
   "Internet",
   "Electricity",
-  "Epargne",
+  "EpargneMensuelle",
+  "EpargneQuotidien",
+  "EpargneHebdomadaire",
   "Autre",
 ];
 

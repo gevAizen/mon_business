@@ -178,7 +178,9 @@ export const fr = {
     Salaire: "Salaire",
     Internet: "Internet",
     Electricity: "Électricité",
-    Epargne: "Épargne",
+    EpargneMensuelle: "Épargne Mensuelle",
+    EpargneQuotidien: "Épargne Quotidienne",
+    EpargneHebdomadaire: "Épargne Hebdomadaire",
     Autre: "Autre",
   },
 

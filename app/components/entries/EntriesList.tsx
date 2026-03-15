@@ -1,10 +1,9 @@
+// app/components/entries/EntriesList.tsx
 "use client";
-
-// ─── Imports ────────────────────────────────────────────────────────────────
 import {
   addOrUpdateEntry,
   deleteEntry,
-  getEntriesForMonth, // assumes you add this helper, see note below
+  getEntriesForMonth,
 } from "@/lib/entries";
 import { fr } from "@/lib/i18n";
 import { loadData } from "@/lib/storage";
@@ -15,62 +14,37 @@ import AddIconButton from "../common/AddIconButton";
 import PageWrapper from "../PageWrapper";
 import { MonthSummary } from "./MonthSummary";
 import { SingleEntryList } from "./SingleEntryList";
-// import { DayCard, MonthSummaryBar } from "./EntriesSubcomponents";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface EntriesListProps {
   onBack: () => void;
 }
 
-// Grouped shape: { "2025-06-01": DailyEntry[], "2025-06-02": ... }
 type EntriesByDay = Record<string, DailyEntry[]>;
 
-// ─── Pure helper functions (no side effects, easy to test) ───────────────────
+// Type pour le filtre
+type EntryFilter = "ALL" | "SALE" | "EXPENSE";
 
-/**
- * Groups a flat list of entries by their calendar day.
- * Returns days in reverse-chronological order (most recent first).
- *
- * WHY NOT in a useEffect + setState?
- * Because this is derived data — it can always be computed from `entries`.
- * Storing it in state would mean keeping two things in sync, which is a
- * classic source of stale-data bugs.
- */
 function groupEntriesByDay(entries: DailyEntry[]): EntriesByDay {
   const grouped: EntriesByDay = {};
-
-  // 1. Grouping Logic
   for (const entry of entries) {
     const key = entry.date;
-
-    // Initialize the array if this is the first entry for this date
     if (!grouped[key]) {
       grouped[key] = [];
     }
-
     grouped[key].push(entry);
   }
-
-  // 2. Sorting Logic (Within each day)
   for (const key in grouped) {
-    // NOTE: We keep 'timestamp' here!
-    // We want entries inside a single day ordered by time.
     grouped[key].sort((a, b) => {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
   }
-
-  // 3. Sort the days themselves (Newest day first)
   const sortedEntries = Object.entries(grouped).sort(([dateA], [dateB]) => {
     return dateB.localeCompare(dateA);
   });
-
   return Object.fromEntries(sortedEntries);
 }
 
 function getMonthValue(date: Date): string {
-  // Returns "YYYY-MM" for use with <input type="month">
   return date.toISOString().slice(0, 7);
 }
 
@@ -80,22 +54,13 @@ export function EntriesList({ onBack }: EntriesListProps) {
   const [selectedMonth, setSelectedMonth] = useState<string>(() =>
     getMonthValue(new Date()),
   );
-
-  // Stock is read from storage; refreshed after mutations
   const [stock, setStock] = useState<StockItem[]>(() => loadData().stock);
+  const [filter, setFilter] = useState<EntryFilter>("ALL"); // Nouvel état pour le filtre
 
   const refreshStock = useCallback(() => {
     setStock(loadData().stock);
   }, []);
 
-  // ── Lookups (memoised so they don't re-run on every render) ──────────────
-
-  /*
-   * WHY useMemo here?
-   * Building lookup maps is O(n). Without memo, it runs on every render even
-   * when stock hasn't changed. With small datasets it's negligible, but it's a
-   * good habit and signals intent: "this is derived from stock, not fresh data".
-   */
   const stockById = useMemo(
     () => new Map(stock.map((s) => [s.id, s])),
     [stock],
@@ -109,34 +74,25 @@ export function EntriesList({ onBack }: EntriesListProps) {
     [stockById],
   );
 
-  const getCategoryName = useCallback(
-    (cat?: string) => {
-      if (!cat) return "Autre";
-      return fr.expenseCategories[cat as ExpenseCategory] ?? cat;
-    },
-    [], // fr is a module-level constant, never changes
-  );
+  const getCategoryName = useCallback((cat?: string) => {
+    if (!cat) return "Autre";
+    return fr.expenseCategories[cat as ExpenseCategory] ?? cat;
+  }, []);
 
-  // ── Data ─────────────────────────────────────────────────────────────────
-
-  /*
-   * NOTE: Ideally `getEntriesForMonth(selectedMonth)` exists in your data layer.
-   * If it doesn't, you can derive it from `getEntriesForDate` by iterating days,
-   * or filter all entries by month prefix here. Keeping data-fetching logic
-   * OUT of the component is the right boundary — components shouldn't know
-   * how data is stored.
-   */
   const allEntries = getEntriesForMonth(selectedMonth);
 
-  /*
-   * useMemo: grouping and sorting is pure computation over `allEntries`.
-   * No need to store the result in state — it's always derivable.
-   */
+  // Filtrer les entrées selon le filtre sélectionné
+  const filteredEntries = useMemo(() => {
+    if (filter === "ALL") return allEntries;
+    return allEntries.filter((entry) => entry.type === filter);
+  }, [allEntries, filter]);
+
   const entriesByDay = useMemo(
-    () => groupEntriesByDay(allEntries),
-    [allEntries],
+    () => groupEntriesByDay(filteredEntries),
+    [filteredEntries],
   );
 
+  // Calculer les totaux pour le mois (toujours basé sur toutes les entrées pour le résumé)
   const monthTotals = useMemo(
     () =>
       allEntries.reduce(
@@ -148,8 +104,6 @@ export function EntriesList({ onBack }: EntriesListProps) {
       ),
     [allEntries],
   );
-
-  // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleSaveEntry = (entries: DailyEntry[]) => {
     let ok = true;
@@ -181,30 +135,78 @@ export function EntriesList({ onBack }: EntriesListProps) {
     setShowAddEntry(true);
   }, []);
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
-  const dayKeys = Object.keys(entriesByDay); // already sorted newest-first
+  const dayKeys = Object.keys(entriesByDay);
 
   return (
     <PageWrapper header={<EntriesHeader />}>
       <div className="flex-1 pb-4 overflow-auto space-y-4">
-        {/* Month Selector */}
-        <div className="flex gap-2 items-center">
+        {/* Ligne avec sélection du mois ET filtres */}
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          {/* Sélecteur de mois */}
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+
+          {/* Filtres par type */}
+          <div className="flex gap-1 border border-gray-300 p-1 rounded-lg">
+            <button
+              onClick={() => setFilter("ALL")}
+              className={`
+                px-4 py-2 text-sm font-medium rounded-md transition-all
+                ${
+                  filter === "ALL"
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-600  hover:text-gray-900"
+                }
+              `}
+            >
+              Tous
+            </button>
+            <button
+              onClick={() => setFilter("SALE")}
+              className={`
+                px-4 py-2 text-sm font-medium rounded-md transition-all
+                ${
+                  filter === "SALE"
+                    ? "bg-white shadow-sm text-green-600"
+                    : "text-gray-600  hover:text-gray-900"
+                }
+              `}
+            >
+              Ventes
+            </button>
+            <button
+              onClick={() => setFilter("EXPENSE")}
+              className={`
+                px-4 py-2 text-sm font-medium rounded-md transition-all
+                ${
+                  filter === "EXPENSE"
+                    ? "bg-white shadow-sm text-red-600"
+                    : "text-gray-600  hover:text-gray-900"
+                }
+              `}
+            >
+              Dépenses
+            </button>
+          </div>
         </div>
 
-        {/* Month Summary */}
+        {/* Résumé du mois (toujours afficher le total) */}
         <MonthSummary
           sales={monthTotals.sales}
           expenses={monthTotals.expenses}
         />
 
-        {/* Add Entry Button */}
+        {/* Indicateur de filtre actif (optionnel) */}
+        {filter !== "ALL" && (
+          <div className="text-sm text-gray-500">
+            Affichage des {filter === "SALE" ? "ventes" : "dépenses"} uniquement
+          </div>
+        )}
+
         <AddIconButton
           onPress={() => {
             setEditingEntry(undefined);
@@ -213,10 +215,15 @@ export function EntriesList({ onBack }: EntriesListProps) {
           label="Ajouter une nouvelle transaction"
         />
 
-        {/* Entries grouped by day */}
         {dayKeys.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-lg">Aucune entrée pour ce mois</p>
+            <p className="text-lg">
+              {filter === "ALL"
+                ? "Aucune entrée pour ce mois"
+                : filter === "SALE"
+                  ? "Aucune vente pour ce mois"
+                  : "Aucune dépense pour ce mois"}
+            </p>
           </div>
         ) : (
           <div className="flex flex-wrap justify-between gap-4">
@@ -235,7 +242,6 @@ export function EntriesList({ onBack }: EntriesListProps) {
         )}
       </div>
 
-      {/* Edit / Add Modal */}
       {showAddEntry && (
         <AddEntry
           existingEntry={editingEntry}
@@ -250,7 +256,6 @@ export function EntriesList({ onBack }: EntriesListProps) {
   );
 }
 
-// Defined outside the component so React never remounts it between renders
 const EntriesHeader: React.FC = () => (
   <div className="flex flex-col gap-2">
     <h1 className="text-2xl font-bold text-gray-900">Mes ventes et dépenses</h1>

@@ -27,6 +27,8 @@ export function Analytics({ onBack }: AnalyticsProps) {
     return loadData().stock;
   });
 
+  const [isSellsTab, setIsSellsTab] = useState(true);
+
   const [filter, setFilter] = useState<TimeFilter>("month");
 
   const [performanceSortField, setPerformanceSortField] =
@@ -214,456 +216,506 @@ export function Analytics({ onBack }: AnalyticsProps) {
           </div>
         )}
 
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex flex-col md:flex-row justify-start md:justify-between items-start md:items-center gap-2 mb-4 md:mb-6">
-            <h2 className="font-bold text-gray-800">
-              Performance détaillée des produits
-            </h2>
+        <div className="w-full">
+          {/* En-tête des onglets */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setIsSellsTab(true)}
+              className={`
+          px-4 py-2 text-sm font-medium transition-colors relative
+          ${isSellsTab ? "text-[#60b8c0]" : "text-gray-500 hover:text-gray-700"}
+        `}
+            >
+              Ventes
+              {/* Indicateur d'onglet actif */}
+              {isSellsTab && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#60b8c0]" />
+              )}
+            </button>
 
-            {/* Search Input */}
-            <input
-              type="text"
-              placeholder="Chercher un produit..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <button
+              onClick={() => setIsSellsTab(false)}
+              className={`
+          px-4 py-2 text-sm font-medium transition-colors relative
+          ${
+            !isSellsTab
+              ? "text-[#60b8c0]"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
+          }
+        `}
+            >
+              Dépenses
+              {!isSellsTab && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#60b8c0]" />
+              )}
+            </button>
           </div>
 
-          <div className="md:hidden space-y-3">
-            {sortedPerformance.map((product) => (
-              <div
-                key={product.productId}
-                className="py-4 border-t border-gray-300"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">
-                      {product.productName}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-400">
-                        #{product.rankByRevenue}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          getPerformanceCategoryDisplay(
-                            product.performanceCategory,
-                          ).color
-                        }`}
-                      >
-                        {
-                          getPerformanceCategoryDisplay(
-                            product.performanceCategory,
-                          ).icon
-                        }{" "}
-                        {
-                          getPerformanceCategoryDisplay(
-                            product.performanceCategory,
-                          ).label
-                        }
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${getPerformanceColor(product.performanceScore)}`}
-                  >
-                    {product.performanceScore}
-                  </span>
-                </div>
+          {/* Contenu des onglets */}
+          <div className="p-4">
+            {isSellsTab ? (
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <div className="flex flex-col md:flex-row justify-start md:justify-between items-start md:items-center gap-2 mb-4 md:mb-6">
+                  <h2 className="font-bold text-gray-800">
+                    Performance détaillée des produits
+                  </h2>
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-gray-500 text-xs mb-1">
-                      Chiffre d&apos;affaires
-                    </p>
-                    <p className="font-medium text-gray-900">
-                      {formatCurrency(product.totalRevenue)}
-                    </p>
-                    {/* Show projected if there's unrealized value */}
-                    {product.unrealizedValue > 0 && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Prévision: {formatCurrency(product.projectedRevenue)}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500 text-xs mb-1">Profit</p>
-                    <div>
-                      <p
-                        className={`font-medium ${product.realizedProfit > 0 ? "text-green-600" : "text-red-500"}`}
-                      >
-                        {formatCurrency(product.realizedProfit)}
-                      </p>
-                      {/* Show potential recovery */}
-                      {product.currentStock > 0 &&
-                        product.unrealizedValue > 0 && (
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            +{formatCurrency(product.unrealizedValue)} en stock
-                          </p>
-                        )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500 text-xs mb-1">Marge</p>
-                    <div>
-                      <span
-                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                          product.profitMargin > 30
-                            ? "bg-green-100 text-green-700"
-                            : product.profitMargin > 15
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {formatPercent(product.profitMargin)}
-                      </span>
-                      {/* Show projected margin if different */}
-                      {product.currentStock > 0 &&
-                        Math.abs(
-                          product.projectedMargin - product.profitMargin,
-                        ) > 1 && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            {formatPercent(product.projectedMargin)} si tout
-                            vendu
-                          </p>
-                        )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500 text-xs mb-1">Ventes</p>
-                    <p className="text-gray-900">
-                      {formatNumber(product.unitsSold)} /{" "}
-                      {formatNumber(product.initialStock)}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {formatPercent(product.realizationRate)} vendu
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500 text-xs mb-1">Stock</p>
-                    <p
-                      className={
-                        product.currentStock < 10
-                          ? "text-red-600 font-medium"
-                          : "text-gray-900"
-                      }
-                    >
-                      {formatNumber(product.currentStock)}
-                    </p>
-                    {product.daysOfStockLeft !== Infinity && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        ~{Math.round(product.daysOfStockLeft)} jours restants
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-gray-500 text-xs mb-1">Efficacité</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-900 text-xs">
-                        {formatPercent(product.stockEfficiency)}
-                      </span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-blue-600 rounded-full h-1.5"
-                          style={{
-                            width: `${Math.min(product.stockEfficiency, 100)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Desktop Table View */}
-          <table className="hidden md:table w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 text-gray-400 font-medium uppercase text-xs">
-                <th className="pb-2 font-semibold">Produit</th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("totalRevenue")}
-                >
-                  Chiffre d&apos;affaires{" "}
-                  {performanceSortField === "totalRevenue" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("realizedProfit")}
-                >
-                  Profit{" "}
-                  {performanceSortField === "realizedProfit" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("profitMargin")}
-                >
-                  Marge{" "}
-                  {performanceSortField === "profitMargin" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("unitsSold")}
-                >
-                  Ventes{" "}
-                  {performanceSortField === "unitsSold" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("currentStock")}
-                >
-                  Stock{" "}
-                  {performanceSortField === "currentStock" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("stockEfficiency")}
-                >
-                  Efficacité{" "}
-                  {performanceSortField === "stockEfficiency" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-                <th
-                  className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
-                  onClick={() => handlePerformanceSort("performanceScore")}
-                >
-                  Score{" "}
-                  {performanceSortField === "performanceScore" &&
-                    (performanceSortDirection === "asc" ? "↑" : "↓")}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {sortedPerformance.map((product) => (
-                <tr key={product.productId} className="hover:bg-gray-50">
-                  {/* Product Name + Category */}
-                  <td className="py-3 font-medium text-gray-800">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        {product.productName}
-                        <span className="text-xs text-gray-400">
-                          #{product.rankByRevenue}
-                        </span>
-                      </div>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full w-fit ${
-                          getPerformanceCategoryDisplay(
-                            product.performanceCategory,
-                          ).color
-                        }`}
-                      >
-                        {
-                          getPerformanceCategoryDisplay(
-                            product.performanceCategory,
-                          ).icon
-                        }{" "}
-                        {
-                          getPerformanceCategoryDisplay(
-                            product.performanceCategory,
-                          ).label
-                        }
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Revenue */}
-                  <td className="py-3 text-right font-medium text-gray-900">
-                    <div className="flex flex-col items-end gap-0.5">
-                      <span>{formatCurrency(product.totalRevenue)}</span>
-                      {product.unrealizedValue > 0 && (
-                        <span className="text-xs text-gray-400">
-                          +{formatCurrency(product.unrealizedValue)}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Profit */}
-                  <td className="py-3 text-right font-medium">
-                    <div className="flex flex-col items-end gap-0.5">
-                      <span
-                        className={
-                          product.realizedProfit > 0
-                            ? "text-green-600"
-                            : "text-red-500"
-                        }
-                      >
-                        {formatCurrency(product.realizedProfit)}
-                      </span>
-                      {product.currentStock > 0 &&
-                        product.projectedProfit !== product.realizedProfit && (
-                          <span className="text-xs text-gray-400">
-                            {formatCurrency(product.projectedProfit)}
-                          </span>
-                        )}
-                    </div>
-                  </td>
-
-                  {/* Margin */}
-                  <td className="py-3 text-right">
-                    <div className="flex flex-col items-end gap-1">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          product.profitMargin > 30
-                            ? "bg-green-100 text-green-700"
-                            : product.profitMargin > 15
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {formatPercent(product.profitMargin)}
-                      </span>
-                      {product.currentStock > 0 &&
-                        Math.abs(
-                          product.projectedMargin - product.profitMargin,
-                        ) > 1 && (
-                          <span className="text-xs text-gray-400">
-                            {formatPercent(product.projectedMargin)}
-                          </span>
-                        )}
-                    </div>
-                  </td>
-
-                  {/* Sales */}
-                  <td className="py-3 text-right text-gray-600">
-                    <div className="flex flex-col items-end gap-0.5">
-                      <span>{formatNumber(product.unitsSold)}</span>
-                      <span className="text-xs text-gray-400">
-                        sur {formatNumber(product.initialStock)} (
-                        {formatPercent(product.realizationRate)})
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Stock */}
-                  <td className="py-3 text-right">
-                    <div className="flex flex-col items-end gap-0.5">
-                      <span
-                        className={
-                          product.currentStock < 10
-                            ? "text-red-600 font-medium"
-                            : "text-gray-600"
-                        }
-                      >
-                        {formatNumber(product.currentStock)}
-                      </span>
-                      {product.daysOfStockLeft !== Infinity && (
-                        <span className="text-xs text-gray-400">
-                          ~{Math.round(product.daysOfStockLeft)}j
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Efficiency */}
-                  <td className="py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-gray-600">
-                        {formatPercent(product.stockEfficiency)}
-                      </span>
-                      <div className="w-12 bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-blue-600 rounded-full h-1.5"
-                          style={{
-                            width: `${Math.min(product.stockEfficiency, 100)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Score */}
-                  <td className="py-3 text-right">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPerformanceColor(product.performanceScore)}`}
-                    >
-                      {product.performanceScore}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Expense Breakdown Section */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="font-bold text-gray-800">
-              {fr.analytics.expenseBreakdown}
-            </h2>
-          </div>
-
-          {expenseData.length > 0 ? (
-            <div className="space-y-4">
-              {/* Visual Bar Representation (Pseudo-Pie) */}
-              <div className="h-4 w-full flex rounded-full overflow-hidden bg-gray-100">
-                {expenseData.map((item) => (
-                  <div
-                    key={item.category}
-                    style={{ width: `${item.percentage}%` }}
-                    className={`${categoryColors[item.category] || "bg-gray-300"}`}
+                  {/* Search Input */}
+                  <input
+                    type="text"
+                    placeholder="Chercher un produit..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                ))}
-              </div>
+                </div>
 
-              {/* Legend List */}
-              <div className="space-y-3">
-                {expenseData.map((item) => (
-                  <div
-                    key={item.category}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${categoryColors[item.category] || "bg-gray-300"}`}
-                      />
-                      <span className="text-gray-700 font-medium">
-                        {item.category}
-                      </span>
+                <div className="md:hidden space-y-3">
+                  {sortedPerformance.map((product) => (
+                    <div
+                      key={product.productId}
+                      className="py-4 border-t border-gray-300"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {product.productName}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-400">
+                              #{product.rankByRevenue}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${
+                                getPerformanceCategoryDisplay(
+                                  product.performanceCategory,
+                                ).color
+                              }`}
+                            >
+                              {
+                                getPerformanceCategoryDisplay(
+                                  product.performanceCategory,
+                                ).icon
+                              }{" "}
+                              {
+                                getPerformanceCategoryDisplay(
+                                  product.performanceCategory,
+                                ).label
+                              }
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPerformanceColor(product.performanceScore)}`}
+                        >
+                          {product.performanceScore}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">
+                            Chiffre d&apos;affaires
+                          </p>
+                          <p className="font-medium text-gray-900">
+                            {formatCurrency(product.totalRevenue)}
+                          </p>
+                          {/* Show projected if there's unrealized value */}
+                          {product.unrealizedValue > 0 && (
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              Prévision:{" "}
+                              {formatCurrency(product.projectedRevenue)}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">Profit</p>
+                          <div>
+                            <p
+                              className={`font-medium ${product.realizedProfit > 0 ? "text-green-600" : "text-red-500"}`}
+                            >
+                              {formatCurrency(product.realizedProfit)}
+                            </p>
+                            {/* Show potential recovery */}
+                            {product.currentStock > 0 &&
+                              product.unrealizedValue > 0 && (
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  +{formatCurrency(product.unrealizedValue)} en
+                                  stock
+                                </p>
+                              )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">Marge</p>
+                          <div>
+                            <span
+                              className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                product.profitMargin > 30
+                                  ? "bg-green-100 text-green-700"
+                                  : product.profitMargin > 15
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {formatPercent(product.profitMargin)}
+                            </span>
+                            {/* Show projected margin if different */}
+                            {product.currentStock > 0 &&
+                              Math.abs(
+                                product.projectedMargin - product.profitMargin,
+                              ) > 1 && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {formatPercent(product.projectedMargin)} si
+                                  tout vendu
+                                </p>
+                              )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">Ventes</p>
+                          <p className="text-gray-900">
+                            {formatNumber(product.unitsSold)} /{" "}
+                            {formatNumber(product.initialStock)}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {formatPercent(product.realizationRate)} vendu
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">Stock</p>
+                          <p
+                            className={
+                              product.currentStock < 10
+                                ? "text-red-600 font-medium"
+                                : "text-gray-900"
+                            }
+                          >
+                            {formatNumber(product.currentStock)}
+                          </p>
+                          {product.daysOfStockLeft !== Infinity && (
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              ~{Math.round(product.daysOfStockLeft)} jours
+                              restants
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="text-gray-500 text-xs mb-1">
+                            Efficacité
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-900 text-xs">
+                              {formatPercent(product.stockEfficiency)}
+                            </span>
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                              <div
+                                className="bg-blue-600 rounded-full h-1.5"
+                                style={{
+                                  width: `${Math.min(product.stockEfficiency, 100)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-900 font-semibold">
-                        {item.amount.toLocaleString("fr-FR")} CFA
-                      </span>
-                      <span className="text-xs text-gray-500 w-8 text-right">
-                        {item.percentage}%
-                      </span>
-                    </div>
+                  ))}
+                </div>
+                {/* Desktop Table View */}
+                <table className="hidden md:table w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-gray-400 font-medium uppercase text-xs">
+                      <th className="pb-2 font-semibold">Produit</th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() => handlePerformanceSort("totalRevenue")}
+                      >
+                        Chiffre d&apos;affaires{" "}
+                        {performanceSortField === "totalRevenue" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() => handlePerformanceSort("realizedProfit")}
+                      >
+                        Profit{" "}
+                        {performanceSortField === "realizedProfit" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() => handlePerformanceSort("profitMargin")}
+                      >
+                        Marge{" "}
+                        {performanceSortField === "profitMargin" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() => handlePerformanceSort("unitsSold")}
+                      >
+                        Ventes{" "}
+                        {performanceSortField === "unitsSold" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() => handlePerformanceSort("currentStock")}
+                      >
+                        Stock{" "}
+                        {performanceSortField === "currentStock" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() => handlePerformanceSort("stockEfficiency")}
+                      >
+                        Efficacité{" "}
+                        {performanceSortField === "stockEfficiency" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                      <th
+                        className="pb-2 text-right font-semibold cursor-pointer hover:text-gray-600"
+                        onClick={() =>
+                          handlePerformanceSort("performanceScore")
+                        }
+                      >
+                        Score{" "}
+                        {performanceSortField === "performanceScore" &&
+                          (performanceSortDirection === "asc" ? "↑" : "↓")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {sortedPerformance.map((product) => (
+                      <tr key={product.productId} className="hover:bg-gray-50">
+                        {/* Product Name + Category */}
+                        <td className="py-3 font-medium text-gray-800">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              {product.productName}
+                              <span className="text-xs text-gray-400">
+                                #{product.rankByRevenue}
+                              </span>
+                            </div>
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full w-fit ${
+                                getPerformanceCategoryDisplay(
+                                  product.performanceCategory,
+                                ).color
+                              }`}
+                            >
+                              {
+                                getPerformanceCategoryDisplay(
+                                  product.performanceCategory,
+                                ).icon
+                              }{" "}
+                              {
+                                getPerformanceCategoryDisplay(
+                                  product.performanceCategory,
+                                ).label
+                              }
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Revenue */}
+                        <td className="py-3 text-right font-medium text-gray-900">
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span>{formatCurrency(product.totalRevenue)}</span>
+                            {product.unrealizedValue > 0 && (
+                              <span className="text-xs text-gray-400">
+                                +{formatCurrency(product.unrealizedValue)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Profit */}
+                        <td className="py-3 text-right font-medium">
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span
+                              className={
+                                product.realizedProfit > 0
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                              }
+                            >
+                              {formatCurrency(product.realizedProfit)}
+                            </span>
+                            {product.currentStock > 0 &&
+                              product.projectedProfit !==
+                                product.realizedProfit && (
+                                <span className="text-xs text-gray-400">
+                                  {formatCurrency(product.projectedProfit)}
+                                </span>
+                              )}
+                          </div>
+                        </td>
+
+                        {/* Margin */}
+                        <td className="py-3 text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                product.profitMargin > 30
+                                  ? "bg-green-100 text-green-700"
+                                  : product.profitMargin > 15
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {formatPercent(product.profitMargin)}
+                            </span>
+                            {product.currentStock > 0 &&
+                              Math.abs(
+                                product.projectedMargin - product.profitMargin,
+                              ) > 1 && (
+                                <span className="text-xs text-gray-400">
+                                  {formatPercent(product.projectedMargin)}
+                                </span>
+                              )}
+                          </div>
+                        </td>
+
+                        {/* Sales */}
+                        <td className="py-3 text-right text-gray-600">
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span>{formatNumber(product.unitsSold)}</span>
+                            <span className="text-xs text-gray-400">
+                              sur {formatNumber(product.initialStock)} (
+                              {formatPercent(product.realizationRate)})
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Stock */}
+                        <td className="py-3 text-right">
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span
+                              className={
+                                product.currentStock < 10
+                                  ? "text-red-600 font-medium"
+                                  : "text-gray-600"
+                              }
+                            >
+                              {formatNumber(product.currentStock)}
+                            </span>
+                            {product.daysOfStockLeft !== Infinity && (
+                              <span className="text-xs text-gray-400">
+                                ~{Math.round(product.daysOfStockLeft)}j
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Efficiency */}
+                        <td className="py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-gray-600">
+                              {formatPercent(product.stockEfficiency)}
+                            </span>
+                            <div className="w-12 bg-gray-200 rounded-full h-1.5">
+                              <div
+                                className="bg-blue-600 rounded-full h-1.5"
+                                style={{
+                                  width: `${Math.min(product.stockEfficiency, 100)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Score */}
+                        <td className="py-3 text-right">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getPerformanceColor(product.performanceScore)}`}
+                          >
+                            {product.performanceScore}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {/* Summary Card */}
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 text-center">
+                  <p className="text-xs text-blue-600 font-medium uppercase mb-1">
+                    Total Dépenses ({getTimeLabel()})
+                  </p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {expenseData
+                      .reduce((sum, item) => sum + item.amount, 0)
+                      .toLocaleString("fr-FR")}{" "}
+                    CFA
+                  </p>
+                </div>
+                {/* Expense Breakdown Section */}
+                <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="font-bold text-gray-800">
+                      {fr.analytics.expenseBreakdown}
+                    </h2>
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              <p>{fr.analytics.noExpenses}</p>
-            </div>
-          )}
-        </div>
 
-        {/* Summary Card */}
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 text-center">
-          <p className="text-xs text-blue-600 font-medium uppercase mb-1">
-            Total Dépenses ({getTimeLabel()})
-          </p>
-          <p className="text-2xl font-bold text-blue-900">
-            {expenseData
-              .reduce((sum, item) => sum + item.amount, 0)
-              .toLocaleString("fr-FR")}{" "}
-            CFA
-          </p>
+                  {expenseData.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Visual Bar Representation (Pseudo-Pie) */}
+                      <div className="h-4 w-full flex rounded-full overflow-hidden bg-gray-100">
+                        {expenseData.map((item) => (
+                          <div
+                            key={item.category}
+                            style={{ width: `${item.percentage}%` }}
+                            className={`${categoryColors[item.category] || "bg-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Legend List */}
+                      <div className="space-y-3">
+                        {expenseData.map((item) => (
+                          <div
+                            key={item.category}
+                            className="flex items-center justify-between text-sm"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-3 h-3 rounded-full ${categoryColors[item.category] || "bg-gray-300"}`}
+                              />
+                              <span className="text-gray-700 font-medium">
+                                {item.category}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-gray-900 font-semibold">
+                                {item.amount.toLocaleString("fr-FR")} CFA
+                              </span>
+                              <span className="text-xs text-gray-500 w-8 text-right">
+                                {item.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400 text-sm">
+                      <p>{fr.analytics.noExpenses}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </PageWrapper>
